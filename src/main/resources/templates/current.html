@@ -1,0 +1,39 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Getting Started: Serving Web Content</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" href="../css/mystyle.css" />
+</head>
+<body>
+<main id="posts">
+	<article>
+
+
+			<table class="blueTable">
+				<thead>
+					<th>Grad</th>
+					<th>Temperatura</th>
+					<th>Subjektivni osećaj</th>
+					<th>Vetar</th>
+					<th>Vlažnost vazduha</th>
+					<th>Vazdušni pritisak</th>
+				</thead>
+
+				<th:block th:each="fo, foStat : ${listCurrentForecast}">
+					<tr>
+						<td th:text="${fo.city.cityName}"></td>
+						<td th:text="${fo.temperature}"></td>
+						<td th:text="${fo.feelsLike}"></td>
+						<td th:text="${fo.windSpeed + ' ' + fo.windDirection}"></td>
+						<td th:text="${fo.humidity}"></td>
+						<td th:text="${fo.pressure}"></td>
+					</tr>
+				</th:block>
+				</tbody>
+			</table>
+		</th:block>
+	</article>
+</main>
+</body>
+</html>

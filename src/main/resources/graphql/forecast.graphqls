@@ -1,0 +1,121 @@
+schema{
+    query: Query
+    subscription: Subscription
+    mutation: Mutation
+}
+
+scalar LocalDateTime
+scalar LocalDate
+
+type Query {
+    getAllCities(forecastType:ForecastType):[City]!
+    getFivedayForecast:[FivedayForecast]!
+    getCurrentForecast:[CurrentForecast]!
+    getShortTermForecast:[ShortTermForecast]!
+    getAirQuality:[AirQuality]!
+}
+
+type Subscription{
+    subscribeToCurrentForecast: [CurrentForecast]!
+    subscribeToFivedayForecast: [FivedayForecast]!
+    subscribeToShortTermForecast: [ShortTermForecast]!
+    subscribeToAirQuality: [AirQuality]!
+}
+
+type Mutation{
+    createNewUser(user: Users) : Boolean
+    createNewAuthority(input: [Authorities]) : Boolean
+}
+
+type City {
+    id: ID!
+    cityName: String!
+}
+
+type Description {
+    description: String
+    imageLocation: String
+}
+
+type ForecastDate{
+    forecastDate: LocalDate!
+}
+
+type ShortTermForecast {
+    maxTemperature: Int
+    minTemperature: Int
+    tableTime: LocalDateTime
+    city: City!
+    forecastDate: ForecastDate!
+    description: Description
+}
+
+type FivedayForecast {
+    minTemperature: Int
+    maxTemperature: Int
+    tableTime: LocalDateTime
+    city: City!
+    forecastDate: ForecastDate!
+    description: Description
+}
+
+type CurrentForecast{
+    feelsLike: Int
+    humidity: Int
+    pressure: Float
+    tableTime: LocalDateTime
+    temperature: Int
+    windDirection: String
+    windSpeed: String
+    city: City!
+    description: Description
+}
+
+type AirQuality{
+    station: Station!
+    sulfurDioxide: Float
+    nitrogenDioxide: Float
+    monoNitrogenOxides: Float
+    nitrogenOxide: Float
+    particleTenMicrometerPerDay: Float
+    particleTenMicrometerPerHour: Float
+    particleTwoAndAHalfMicrometerPerDay: Float
+    carbonOxide: Float
+    ozon: Float
+    benzen: Float
+    dd: Float
+    speed: Float
+    temperature: Float
+    tableTime: LocalDateTime
+}
+
+type Station{
+    city: City!
+    stationName: String
+    network: String
+    eoiCode:String
+    classification:String
+    zone: String
+}
+
+input Users{
+    username: String
+    password: String
+    enabled: Boolean
+    authorities: [Authorities]
+}
+input Authorities{
+    id : AuthoritiesId
+}
+
+input AuthoritiesId{
+    username: String
+    authority: String
+}
+
+enum ForecastType{
+    CURRENT
+    FIVEDAY
+    SHORT_TERM
+    ALL
+}

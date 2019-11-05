@@ -1,0 +1,35 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Getting Started: Serving Web Content</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" href="../css/mystyle.css" />
+</head>
+<body>
+<main id="posts">
+	<article>
+		<th:block th:each="ci, ciStat : ${cityList}">
+			<table class="blueTable" th:id="${ci.cityName}">
+				<thead>
+				<th th:text="${ci.cityName}" colspan="3"></th>
+				</thead>
+				<tbody>
+				<tr class="bold">
+					<td>Datum</td>
+					<td>Minimalna temperatura</td>
+					<td>Maksimalna temperatura</td>
+				</tr>
+				<th:block th:each="fo, foStat : ${listShortTermForecast}">
+					<tr th:if="${fo.city.cityName ==  ci.cityName}">
+						<td th:text="${#temporals.format(fo.forecastDate.forecastDate, 'dd-MMM-yyyy')}"></td>
+						<td th:text="${fo.minTemperature}"></td>
+						<td th:text="${fo.maxTemperature}"></td>
+					</tr>
+				</th:block>
+				</tbody>
+			</table>
+		</th:block>
+	</article>
+</main>
+</body>
+</html>

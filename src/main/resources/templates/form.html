@@ -1,0 +1,64 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+	<title>Create User</title>
+	<link href="../css/view.css" media="all" rel="stylesheet" type="text/css">
+	<script src="../js/view.js" type="text/javascript"></script>
+</head>
+<body id="main_body">
+
+	<img alt="" id="top" src="../images/top.png">
+	<div id="form_container">
+
+		<h1>
+			<a>Create User</a>
+		</h1>
+		<form action="#" th:action="@{/readable/user}" th:object="${user}" method="post">
+			<div class="form_description">
+				<h2>Create User</h2>
+			</div>
+			<ul >
+
+				<li id="li_1" >
+					<label class="description" for="element_1">Username</label>
+					<div>
+						<input class="element text medium" id="element_1" maxlength="255" name="element_1" type="text" value="" th:field="*{username}"/>
+					</div>
+				</li>
+				<li id="li_2" >
+					<label class="description" for="element_2">Password</label>
+					<div>
+						<input class="element text medium" id="element_2" maxlength="255" name="element_2" type="password" value="" th:field="*{password}"/>
+					</div>
+				</li>
+				<li id="li_3" >
+					<label class="description">Enabled</label>
+					<div>
+						<input type="checkbox" name="element_3" id="element_3"  th:field="*{enabled}" th:checked="true" checked="true"  />
+						<label class="choice" for="element_3">enabled</label>
+					</div>
+				</li>
+
+				<li id="li_4" >
+					<label class="description">Choose Authorities</label>
+					<span>
+						<input class="element checkbox" id="element_4_1" name="element_4_1" type="checkbox"  th:field="*{admin}"  />
+						<label class="choice" for="element_4_1">admin</label>
+						<input class="element checkbox" id="element_4_2" name="element_4_2" type="checkbox" th:field="*{user}" />
+						<label class="choice" for="element_4_2">user</label>
+					</span>
+				</li>
+
+				<li class="buttons">
+					<input name="form_id" type="hidden" value="83891" />
+					<input class="button_text" id="saveForm" name="submit" type="submit" value="Submit" />
+				</li>
+			</ul>
+		</form>
+		<div id="footer">
+		</div>
+	</div>
+	<img alt="" id="bottom" src="../images/bottom.png">
+</body>
+</html>

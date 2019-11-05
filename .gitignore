@@ -1,0 +1,9 @@
+/target/
+/logs/
+/.settings/
+/.sts4-cache
+/.idea/
+.classpath
+.project
+/.metadata/*
+*.iml

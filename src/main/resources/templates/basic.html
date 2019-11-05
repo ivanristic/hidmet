@@ -1,0 +1,32 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Getting Started: Serving Web Content</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+<body>
+
+    <p></p>
+<div>
+    <ul>
+        <li>Swagger: <a th:href="@{'/swagger-ui.html'}">Swagger UI</a></li>
+        <li>API: <a th:href="@{'/v2/api-docs'}">API:</a></li>
+    </ul>
+    <ul>
+        <li><a th:href="@{'/readable/current'}">Current</a></li>
+        <li><a th:href="@{'/readable/fiveday'}">FiveDay</a></li>
+        <li><a th:href="@{'/readable/shorterm'}">Short Term</a> </li>
+    </ul>
+</div>
+<div>
+    <ul>
+        <li>GraphQL: <a th:href="@{'/graphiql'}">GraphQL:</a></li>
+    </ul>
+    <ul>
+        <li><a th:href="@{'/gql/current'}">GraphQL Current</a></li>
+        <li><a th:href="@{'/gql/fiveday'}">GraphQL FiveDay</a></li>
+        <li><a th:href="@{'/gql/shortterm'}">GraphQL Short Term</a> </li>
+    </ul>
+</div>
+</body>
+</html>

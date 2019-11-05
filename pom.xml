@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.sargije.rest.hidmet</groupId>
+	<artifactId>hidmetrest</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+    
+	<properties>
+		<java.version>1.8</java.version>
+		<serverName>openshift</serverName>
+		<packaging>jar</packaging>
+		<kotlin.version>1.3.10</kotlin.version>
+	</properties>
+
+	<name>hidmetrest</name>
+	
+	<packaging>${packaging}</packaging>
+	
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.1.7.RELEASE</version>
+	</parent>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-tomcat</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-thymeleaf</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-cache</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-websocket</artifactId>
+		</dependency>
+
+		<!-- tag::caffeine -->
+		<dependency>
+			<groupId>com.github.ben-manes.caffeine</groupId>
+			<artifactId>caffeine</artifactId>
+		</dependency>
+
+		<!-- tag::springjpa -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+		</dependency>
+
+		<!-- tag::devtools izbrisati u produkciji -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<!-- end::devtools izbrisati u produkciji -->
+
+		<!-- Data Mining -->
+		<dependency>
+			<groupId>org.jsoup</groupId>
+			<artifactId>jsoup</artifactId>
+			<version>1.12.1</version>
+		</dependency>
+		
+		<!--  Swagger related -->
+	    <dependency>
+	        <groupId>io.springfox</groupId>
+	        <artifactId>springfox-swagger2</artifactId>
+	        <version>2.9.2</version>
+	    </dependency>
+	    <dependency>
+	        <groupId>io.springfox</groupId>
+	        <artifactId>springfox-swagger-ui</artifactId>
+	        <version>2.9.2</version>
+	    </dependency>
+		<!--  graphql related -->
+
+		<dependency>
+			<groupId>com.graphql-java-kickstart</groupId>
+			<artifactId>graphiql-spring-boot-starter</artifactId>
+			<version>5.4.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.graphql-java-kickstart</groupId>
+			<artifactId>graphiql-spring-boot-autoconfigure</artifactId>
+			<version>5.4.1</version>
+		</dependency>
+<!--
+		<dependency>
+			<groupId>com.graphql-java-kickstart</groupId>
+			<artifactId>altair-spring-boot-starter</artifactId>
+			<version>5.10.0</version>
+		</dependency>
+-->
+		<dependency>
+			<groupId>com.graphql-java-kickstart</groupId>
+			<artifactId>graphql-spring-boot-starter</artifactId>
+			<version>5.10.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.graphql-java-kickstart</groupId>
+			<artifactId>graphql-spring-boot-autoconfigure</artifactId>
+			<version>5.10.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.graphql-java-kickstart</groupId>
+			<artifactId>graphql-java-tools</artifactId>
+			<version>5.6.1</version>
+		</dependency>
+
+		<!-- LocalDate for graphql -->
+		<dependency>
+			<groupId>com.zhokhov.graphql</groupId>
+			<artifactId>graphql-datetime-spring-boot-starter</artifactId>
+			<version>1.5.1</version>
+		</dependency>
+
+		<!-- graphql consumer -->
+		<dependency>
+			<groupId>io.aexp.nodes.graphql</groupId>
+			<artifactId>nodes</artifactId>
+			<version>0.5.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>io.reactivex.rxjava2</groupId>
+			<artifactId>rxjava</artifactId>
+		</dependency>
+
+	</dependencies>
+
+
+	<build>
+		<finalName>ROOT</finalName>
+		<plugins>
+
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<addResources>true</addResources>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<artifactId>maven-war-plugin</artifactId>
+				<configuration>
+					<webResources>
+						<resource>
+							<directory>deploy/${serverName}</directory>
+							<targetPath>WEB-INF/classes</targetPath>
+							<filtering>false</filtering>
+							<includes>
+								<include>application.properties</include>
+							</includes>
+						</resource>
+					</webResources>
+				</configuration>
+			</plugin>
+			
+			<plugin>
+			  <artifactId>maven-resources-plugin</artifactId>
+			  <executions>
+			    <execution>
+			      <id>copy-prod-resources</id>
+			      <phase>process-resources</phase>
+			      <goals>
+			         <goal>copy-resources</goal>
+			      </goals>
+			      <configuration>
+			        <!-- this is important -->
+			        <overwrite>true</overwrite>
+			        <!-- this as well (target/ was missing) -->
+			        <outputDirectory>${basedir}/target/classes</outputDirectory>
+			        <resources>
+			          <resource>
+			            <directory>deploy/${serverName}</directory>
+			          </resource>
+			        </resources>
+			      </configuration>
+			    </execution>
+			  </executions>
+			</plugin>
+
+		</plugins>
+	</build>
+
+	<profiles>
+		<profile>
+			<id>openshift</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+				<property>
+					<name>serverName</name>
+					<value>openshift</value>
+				</property>
+			</activation>
+			<properties>
+				<deploy.dir>deploy/openshift</deploy.dir>
+			</properties>
+		</profile>
+		<profile>
+			<id>cloud</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+				<property>
+					<name>serverName</name>
+					<value>cloud</value>
+				</property>
+			</activation>
+			<properties>
+				<deploy.dir>deploy/cloud</deploy.dir>
+			</properties>
+		</profile>
+	</profiles>
+</project>
