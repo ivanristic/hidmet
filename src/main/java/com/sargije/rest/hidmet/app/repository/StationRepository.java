@@ -10,7 +10,7 @@ import java.util.List;
 @Transactional
 public interface StationRepository extends CrudRepository<Station, Long> {
 
-    @Cacheable("git a")
+    @Cacheable("stations")
     List<Station> findAll();
 
 }
