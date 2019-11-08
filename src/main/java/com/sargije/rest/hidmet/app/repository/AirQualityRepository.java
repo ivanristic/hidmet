@@ -7,18 +7,17 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Transactional
 public interface AirQualityRepository extends CrudRepository<AirQuality, Long> {
-    boolean existsByActiveAndTableTime(BigInteger one, LocalDateTime tableTime);
+    boolean existsByActiveAndTableTime(boolean one, LocalDateTime tableTime);
 
     @Modifying
     @Query("update AirQuality a set a.active = 0 where a.active = 1")
     void updateAirQualitySetActiveToFalse();
 
     @Cacheable("airQuality")
-    List<AirQuality> findByActive(BigInteger one);
+    List<AirQuality> findByActive(boolean one);
 }

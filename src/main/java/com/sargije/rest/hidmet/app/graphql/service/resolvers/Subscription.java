@@ -29,7 +29,7 @@ public class Subscription implements GraphQLSubscriptionResolver {
     private ShortTermForecastPublisher shortTermForecastPublisher;
 
     @Autowired
-            private AirQualityPublisher airQualityPublisher;
+    private AirQualityPublisher airQualityPublisher;
     // name must be same as graphqls
 
     Publisher<List<CurrentForecast>> subscribeToCurrentForecast(){

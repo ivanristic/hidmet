@@ -1,6 +1,6 @@
 package com.sargije.rest.hidmet.app.controller;
 
-import com.sargije.rest.hidmet.app.graphql.service.Request;
+import com.sargije.rest.hidmet.app.graphql.service.requests.*;
 import com.sargije.rest.hidmet.app.model.City;
 import com.sargije.rest.hidmet.app.model.ForecastType;
 import io.aexp.nodes.graphql.*;
@@ -30,10 +30,10 @@ public class ReadableGraphQLController {
 		GraphQLRequestEntity requestEntity = GraphQLRequestEntity.Builder()
 				.url("http://localhost:8080/graphql")
                 .headers(headers)
-				.request(Request.class)
+				.request(FivedayForecastRequest.class)
 				.build();
        System.out.println("Request Entity:" + requestEntity.toString());
-		GraphQLResponseEntity<Request> responseEntity = graphQLTemplate.query(requestEntity, Request.class);
+		GraphQLResponseEntity<FivedayForecastRequest> responseEntity = graphQLTemplate.query(requestEntity, FivedayForecastRequest.class);
         model.addAttribute("listFiveDayForecast", responseEntity.getResponse().getGetFivedayForecast());
         model.addAttribute("cityList", getGraphQLCities(ForecastType.FIVEDAY));
         return "fiveday";
@@ -47,10 +47,10 @@ public class ReadableGraphQLController {
         GraphQLRequestEntity requestEntity = GraphQLRequestEntity.Builder()
                 .url("http://localhost:8080/graphql")
                 .headers(headers)
-                .request(Request.class)
+                .request(CurrentForecastRequest.class)
                 .build();
         System.out.println("Request Entity:" + requestEntity.toString());
-        GraphQLResponseEntity<Request> responseEntity = graphQLTemplate.query(requestEntity, Request.class);
+        GraphQLResponseEntity<CurrentForecastRequest> responseEntity = graphQLTemplate.query(requestEntity, CurrentForecastRequest.class);
         model.addAttribute("listCurrentForecast", responseEntity.getResponse().getGetCurrentForecast());
   //      model.addAttribute("cityList", getGraphQLCities(ForecastType.CURRENT));
         return "current";
@@ -64,15 +64,38 @@ public class ReadableGraphQLController {
         GraphQLRequestEntity requestEntity = GraphQLRequestEntity.Builder()
                 .url("http://localhost:8080/graphql")
                 .headers(headers)
-                .request(Request.class)
+                .request(ShortTermForecastRequest.class)
                 .build();
 //        System.out.println("Request Entity:" + requestEntity.toString());
-        GraphQLResponseEntity<Request> responseEntity = graphQLTemplate.query(requestEntity, Request.class);
+        GraphQLResponseEntity<ShortTermForecastRequest> responseEntity = graphQLTemplate.query(requestEntity, ShortTermForecastRequest.class);
         model.addAttribute("listShortTermForecast", responseEntity.getResponse().getGetShortTermForecast());
         model.addAttribute("cityList", getGraphQLCities(ForecastType.SHORT_TERM));
         return "shortterm";
     }
 
+    @RequestMapping("/airquality")
+    public String getGraphQLAirQuality(Model model) throws MalformedURLException {
+        Map<String, String> headers = new HashMap<String, String>();
+        headers.put("Authorization", "Basic aXZhbjoxMjM0NTY=");
+
+        GraphQLRequestEntity airQualityRequestEntity = GraphQLRequestEntity.Builder()
+                .url("http://localhost:8080/graphql")
+                .headers(headers)
+                .request(AirQualityRequest.class)
+                .build();
+
+        GraphQLRequestEntity stationRequestEntity = GraphQLRequestEntity.Builder()
+                .url("http://localhost:8080/graphql")
+                .headers(headers)
+                .request(StationRequest.class)
+                .build();
+//        System.out.println("Request Entity:" + requestEntity.toString());
+        GraphQLResponseEntity<AirQualityRequest> airQualityResponseEntity = graphQLTemplate.query(airQualityRequestEntity, AirQualityRequest.class);
+        GraphQLResponseEntity<StationRequest> stationResponseEntity = graphQLTemplate.query(stationRequestEntity, StationRequest.class);
+        model.addAttribute("listAirQuality", airQualityResponseEntity.getResponse().getGetAirQuality());
+        model.addAttribute("stationList", stationResponseEntity.getResponse().getGetStations());
+        return "airquality";
+    }
 
     public List<City> getGraphQLCities(ForecastType ft) throws MalformedURLException {
         Map<String, String> headers = new HashMap<String, String>();
@@ -80,11 +103,11 @@ public class ReadableGraphQLController {
         GraphQLRequestEntity requestEntity = GraphQLRequestEntity.Builder()
                 .url("http://localhost:8080/graphql")
                 .headers(headers)
-                .request(Request.class)
+                .request(CityRequest.class)
                 .arguments(new Arguments("getAllCities", new Argument("forecastType", ft)))
                 .build();
-        System.out.println("Request Entity:" + requestEntity.toString());
-        GraphQLResponseEntity<Request> responseEntity = graphQLTemplate.query(requestEntity, Request.class);
+       // System.out.println("Request Entity:" + requestEntity.toString());
+        GraphQLResponseEntity<CityRequest> responseEntity = graphQLTemplate.query(requestEntity, CityRequest.class);
 
         return responseEntity.getResponse().getGetAllCities();
     }

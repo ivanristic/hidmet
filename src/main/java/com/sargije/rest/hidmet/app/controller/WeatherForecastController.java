@@ -52,21 +52,27 @@ public class WeatherForecastController {
 	@GetMapping(value = "/city/current")
 	public List<City> showCityForCurrentForecasts(){
 
-		return hidmetDataService.getCityForCurrentForecastsRepository();
+		return hidmetDataService.getCityForCurrentForecasts();
 
 	}
 
 	@GetMapping(value = "/city/fiveday")
 	public List<City> showCityForFivedayForecast(){
 
-		return hidmetDataService.getCityForFivedayForecastRepository();
+		return hidmetDataService.getCityForFivedayForecast();
 
 	}
 
 	@GetMapping(value = "/city/shortterm")
 	public List<City> showCityForShortTermForecast(){
 
-		return hidmetDataService.getCityForShortTermForecastRepository();
+		return hidmetDataService.getCityForShortTermForecast();
+	}
+
+	@GetMapping(value = "/station/airquality")
+	public List<Station> showCityForAirQuality(){
+
+		return hidmetDataService.getStationsForAirQuality();
 	}
 
 }

@@ -7,7 +7,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -15,8 +14,8 @@ import java.util.List;
 public interface ShortTermForecastRepository extends CrudRepository<ShortTermForecast, Long>{
 
 	@Cacheable("shortTermActiveForecasts")
-	List<ShortTermForecast> findByActive(BigInteger active);
-	boolean existsByActiveAndTableTime(BigInteger active, LocalDateTime tableTime);
+	List<ShortTermForecast> findByActive(boolean active);
+	boolean existsByActiveAndTableTime(boolean active, LocalDateTime tableTime);
 
 	@Modifying
 	@Query("update ShortTermForecast cf set cf.active = 0 where cf.active = 1")

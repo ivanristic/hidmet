@@ -7,7 +7,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -15,8 +14,8 @@ import java.util.List;
 public interface FiveDayForecastRepository extends CrudRepository<FivedayForecast, Long>{
 
 	@Cacheable("fivedayActiveForecasts")
-	List<FivedayForecast> findByActive(BigInteger active);
-	boolean existsByActiveAndTableTime(BigInteger active, LocalDateTime tableTime);
+	List<FivedayForecast> findByActive(boolean active);
+	boolean existsByActiveAndTableTime(boolean active, LocalDateTime tableTime);
 
 
 	@Modifying

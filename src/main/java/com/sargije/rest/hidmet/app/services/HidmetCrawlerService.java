@@ -1,6 +1,7 @@
 package com.sargije.rest.hidmet.app.services;
 
 import com.sargije.rest.hidmet.app.config.MvcConfig;
+import com.sargije.rest.hidmet.app.graphql.service.publishers.AirQualityPublisher;
 import com.sargije.rest.hidmet.app.graphql.service.publishers.CurrentForecastPublisher;
 import com.sargije.rest.hidmet.app.graphql.service.publishers.FivedayForecastPublisher;
 import com.sargije.rest.hidmet.app.graphql.service.publishers.ShortTermForecastPublisher;
@@ -17,7 +18,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -58,6 +58,9 @@ public class HidmetCrawlerService {
 	ShortTermForecastPublisher shortTermForecastPublisher;
 
 	@Autowired
+	AirQualityPublisher airQualityPublisher;
+
+	@Autowired
 	StationRepository stationRepository;
 
 	@Autowired
@@ -73,10 +76,10 @@ public class HidmetCrawlerService {
 	//private final String cronCurrentForecast = "0 8-10,15,25,35,45 * * * *";
 	//private final String cronShortermForecast = "0 0/15 4,5,9,11,12 * * *";
 
-	private final String cronFivedayForecast = "0 0/1 * * * *";
-	private final String cronCurrentForecast = "0 0/1 * * * *";
-	private final String cronShortermForecast = "0 0/1 * * * *";
-	private final String cronAirQuality = "0 0/1 * * * *";
+	private final String cronFivedayForecast = "0 0/10 * * * *";
+	private final String cronCurrentForecast = "0 0/5 * * * *";
+	private final String cronShortermForecast = "0 0/10 * * * *";
+	private final String cronAirQuality = "0 0/10 * * * *";
 
 	@Scheduled(cron = cronFivedayForecast)
 	public void populateFivedayForecast() {	
@@ -103,7 +106,7 @@ public class HidmetCrawlerService {
 				Elements links = doc.select("div#sadrzaj div").get(0).select("a[href]");
 							
 
-				boolean isTableTime = fiveDayForecastRepository.existsByActiveAndTableTime(BigInteger.ONE, tableTime);
+				boolean isTableTime = fiveDayForecastRepository.existsByActiveAndTableTime(true, tableTime);
 				if(!isTableTime){
 
 
@@ -203,7 +206,7 @@ public class HidmetCrawlerService {
 	  								fiveDayForecastModel.setMinTemperature(new Integer(tbodyRowsMinTemp.get(i).text()));
 	  							}
 	  							fiveDayForecastModel.setMaxTemperature(new Integer(tbodyRowsMaxTemp.get(i).text()));
-	  							fiveDayForecastModel.setActive(BigInteger.ONE);
+	  							fiveDayForecastModel.setActive(true);
 
 	  							String img = tbodyRowsImage.get(i).select("img").attr("src");
 	  							Description image = currentDescriptions.stream().filter(p -> p.getImageLocation().equals(img)).findFirst().get();
@@ -252,7 +255,7 @@ public class HidmetCrawlerService {
 
 				LocalDateTime tableTime = LocalDateTime.parse(doc.select("table tfoot tr td").get(0).text().substring(18, 34), formatter);
 				//OffsetDateTime tableTime = OffsetDateTime.of(tt, ZoneOffset.of("+2"));
-				boolean isTableTime = currentForecastRepository.existsByActiveAndTableTime(BigInteger.ONE, tableTime);
+				boolean isTableTime = currentForecastRepository.existsByActiveAndTableTime(true, tableTime);
 				if(!isTableTime){
 					//clear cache
 					mvcConfig.currentForecastCacheEvict();
@@ -305,7 +308,7 @@ public class HidmetCrawlerService {
   							currentForecastModel.setDescription(description);
 							
 							currentForecastModel.setTableTime(tableTime);
-							currentForecastModel.setActive(BigInteger.ONE);
+							currentForecastModel.setActive(true);
 							listCurrentForecastsModel.add(currentForecastModel);
 						}
 					}
@@ -335,7 +338,7 @@ public class HidmetCrawlerService {
 				Element tbody = table.select("tbody").get(0);
 				LocalDateTime tableTime = LocalDateTime.parse(tfoot.text().substring(20, 40), formatter);
 				Map<Integer, LocalDate> listStringDates = new HashMap<>();
-				boolean isTableTyme = shortTermForecastRepository.existsByActiveAndTableTime(BigInteger.ONE, tableTime);
+				boolean isTableTyme = shortTermForecastRepository.existsByActiveAndTableTime(true, tableTime);
 				if(!isTableTyme){
 					//clear cache
 					mvcConfig.shortTearmForecastCacheEvict();
@@ -349,9 +352,9 @@ public class HidmetCrawlerService {
                     //List<ForecastDate> forecastDates = forecastDateRepository.findByForecastDateAfter(LocalDate.from(previousDay.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant()));
 					List<ForecastDate> forecastDates = forecastDateRepository.findByForecastDateAfter(previousDay);
 
-					for(ShortTermForecast shortTermForecast : listShortTermForecast ){
-						shortTermForecast.setActive(BigInteger.ZERO);
-					}					
+					/*for(ShortTermForecast shortTermForecast : listShortTermForecast ){
+						shortTermForecast.setActive(false);
+					}	*/
 
 					shortTermForecastRepository.updateShortTermForecastActiveToFalse();
 
@@ -440,7 +443,7 @@ public class HidmetCrawlerService {
 
 									ShortTermForecast shortTermForecastModel = new ShortTermForecast();
 									shortTermForecastModel.setTableTime(tableTime);
-									shortTermForecastModel.setActive(BigInteger.ONE);
+									shortTermForecastModel.setActive(true);
 									if (minTemp != null) {
 										shortTermForecastModel.setMinTemperature(minTemp);
 									}
@@ -490,10 +493,10 @@ public class HidmetCrawlerService {
 			String time = doc.select("body > div.admin-wrapper > div.admin-content > div > div.admin-content-header > div > div > div").select("a[href]").get(0).text().substring(21);
 			LocalDateTime tableTime = LocalDateTime.parse(time, formatter);
 			//boolean isTableTyme = shortTermForecastRepository.existsByActiveAndTableTime(BigInteger.ONE, tableTime);
-			boolean isTableTime = airQualityRepository.existsByActiveAndTableTime(BigInteger.ONE, tableTime);
+			boolean isTableTime = airQualityRepository.existsByActiveAndTableTime(true, tableTime);
 			if (!isTableTime) {
 
-			    populateStations();
+			  //  populateStations();
 
 				List<Station> stations = (List<Station>) stationRepository.findAll();
 				airQualityRepository.updateAirQualitySetActiveToFalse();
@@ -504,12 +507,25 @@ public class HidmetCrawlerService {
 					try {
 						station = stations.parallelStream().filter(x -> {
 							if (x.getStationName().equals("")) {
-								if (x.getCity().getCityName().equals(tdStation.get(0).text())) {
-									return true;
+								if(tdStation.get(0).text().indexOf("-") != -1){
+									if (x.getCity().getCityName().equals(tdStation.get(0).text().substring(0, tdStation.get(0).text().indexOf("-")))) {
+										return true;
+									}
+								}else{
+									if (x.getCity().getCityName().equals(tdStation.get(0).text())) {
+										return true;
+									}
 								}
 							} else {
-								if ((x.getCity().getCityName() + ' ' + x.getStationName()).equals(tdStation.get(0).text())) {
-									return true;
+								if(tdStation.get(0).text().indexOf("-") != -1)
+								{
+									if ((x.getCity().getCityName() + ' ' + x.getStationName()).equals(tdStation.get(0).text().substring(0, tdStation.get(0).text().indexOf("-")))) {
+										return true;
+									}
+								}else{
+									if ((x.getCity().getCityName() + ' ' + x.getStationName()).equals(tdStation.get(0).text())) {
+										return true;
+									}
 								}
 							}
 							return false;
@@ -518,7 +534,7 @@ public class HidmetCrawlerService {
 
 					} catch (NoSuchElementException ne) {
 						System.out.println(tdStation.get(0).text());
-
+						populateStations();
 						ne.printStackTrace();
 					}
 					AirQuality airQuality = new AirQuality();
@@ -537,11 +553,12 @@ public class HidmetCrawlerService {
 					airQuality.setSpeed(tdStation.get(13).text().equals("") || tdStation.get(13).text().equals("X") ? null : Float.valueOf(tdStation.get(13).text()));
 					airQuality.setTemperature(tdStation.get(14).text().equals("") || tdStation.get(14).text().equals("X") ? null : Float.valueOf(tdStation.get(14).text()));
 					airQuality.setTableTime(tableTime);
-					airQuality.setActive(BigInteger.ONE);
+					airQuality.setActive(true);
 					listOfAirQuality.add(airQuality);
 
 				}
 				airQualityRepository.saveAll(listOfAirQuality);
+				airQualityPublisher.publish(listOfAirQuality);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -554,8 +571,8 @@ public class HidmetCrawlerService {
 			doc = Jsoup.connect(airQualityURL+"pregledstanica.php").execute().parse();
 			Elements tbodyStationsUrl = doc.select("table").get(0).select("tbody tr").select("a[href]");
 
-			long val = stationRepository.count();
-		    if(tbodyStationsUrl.size() != val) {
+		//	long val = stationRepository.count();
+		//    if(tbodyStationsUrl.size() != val) {
 				List<Station> stations = (List<Station>) stationRepository.findAll();
 				List<City> cities = (List<City>) cityRepository.findAll();
 				for (Element tdStation : tbodyStationsUrl) {
@@ -564,8 +581,13 @@ public class HidmetCrawlerService {
 					Elements tbodyStations = doc.select("table").get(0).select("tbody tr");
 
 					String hcity = tbodyStations.get(1).select("td").get(1).text();
-					String hstationName = tbodyStations.get(0).select("td").get(1).text().substring(hcity.length()).trim();
+					String hstationNameTmp = tbodyStations.get(0).select("td").get(1).text().substring(hcity.length()).trim();
+					String eoiCode = tbodyStations.get(4).select("td").get(1).text();
 
+					if(hstationNameTmp.indexOf("-")!= -1){
+						hstationNameTmp = hstationNameTmp.substring(0, hstationNameTmp.indexOf("-"));
+					}
+					String hstationName = hstationNameTmp;
 					City city = null;
 					Station station = null;
 					try {
@@ -577,7 +599,13 @@ public class HidmetCrawlerService {
 						cities.add(city);
 					}
 					try {
-						station = stations.parallelStream().filter(e -> e.getCity().getCityName().equals(hcity) && e.getStationName().equals(hstationName)).findAny().get();
+	//					station = stations.parallelStream().filter(e -> e.getCity().getCityName().equals(hcity) && e.getStationName().equals(hstationName)).findAny().get();
+						station = stations.parallelStream().filter(e -> e.getEoiCode().equals(eoiCode)).findAny().get();
+						//if someone changes name but leaves same eoi code
+						if(!(station.getStationName().equals(hstationName) && station.getCity().getCityName().equals(hcity))){
+							station.setStationName(hstationName);
+							stationRepository.save(station);
+						}
 					} catch (NoSuchElementException e) {
 						station = new Station();
 						station.setCity(city);
@@ -591,7 +619,7 @@ public class HidmetCrawlerService {
 					}
 
 				}
-			}
+		//	}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

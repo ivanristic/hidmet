@@ -8,7 +8,6 @@ import javax.validation.constraints.Digits;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
-import java.math.BigInteger;
 import java.time.LocalDateTime;
 
 
@@ -25,7 +24,7 @@ public class CurrentForecast implements Serializable {
 
 	@NotNull
 	@GraphQLIgnore
-	private BigInteger active;
+	private boolean active;
 
 	@NotNull(message = "Feels like can't be null")
 	@Digits(fraction = 0, integer = 2)
@@ -76,7 +75,7 @@ public class CurrentForecast implements Serializable {
 
 	//public BigInteger getActive() {return this.active;}
 
-	public void setActive(BigInteger active) {
+	public void setActive(boolean active) {
 		this.active = active;
 	}
 

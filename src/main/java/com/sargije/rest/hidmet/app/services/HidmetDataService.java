@@ -5,7 +5,6 @@ import com.sargije.rest.hidmet.app.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.math.BigInteger;
 import java.util.List;
 
 @Service
@@ -26,27 +25,30 @@ public class HidmetDataService {
 	@Autowired
 	AirQualityRepository airQualityRepository;
 
+	@Autowired
+	StationRepository stationRepository;
+
 	public List<CurrentForecast> getCurrentForecast(){
-		return currentForecastRepository.findByActive(BigInteger.ONE);
+		return currentForecastRepository.findByActive(true);
 	}
 
 	public List<ShortTermForecast> getShortTermForecast(){
-		return shortTermForecastRepository.findByActive(BigInteger.ONE);
+		return shortTermForecastRepository.findByActive(true);
 	}
 
 	public List<FivedayForecast> getFiveDayForecast(){
-		return fiveDayForecastRepository.findByActive(BigInteger.ONE);
+		return fiveDayForecastRepository.findByActive(true);
 	}
 
-	public List<City> getCityForCurrentForecastsRepository() {
+	public List<City> getCityForCurrentForecasts() {
 		return cityRepository.findDistinctByCurrentForecastsNotNull();
 	}
 
-	public List<City> getCityForFivedayForecastRepository() {
+	public List<City> getCityForFivedayForecast() {
 		return cityRepository.findDistinctByFivedayForecastsNotNull();
 	}
 
-	public List<City> getCityForShortTermForecastRepository() {
+	public List<City> getCityForShortTermForecast() {
 		return cityRepository.findDistinctByShortTermForecastsNotNull();
 	}
 
@@ -54,7 +56,9 @@ public class HidmetDataService {
 		return (List<City>) cityRepository.findAll();
 	}
 
-    public List<AirQuality> getAirQuality() {
-        return airQualityRepository.findByActive(BigInteger.ONE);
-    }
+	public List<AirQuality> getAirQuality() {
+		return airQualityRepository.findByActive(true);
+	}
+
+	public List<Station> getStationsForAirQuality() { return (List<Station>) stationRepository.findAll();}
 }

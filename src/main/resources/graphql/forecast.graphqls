@@ -9,6 +9,8 @@ scalar LocalDate
 
 type Query {
     getAllCities(forecastType:ForecastType):[City]!
+    getStations:[Station]!
+
     getFivedayForecast:[FivedayForecast]!
     getCurrentForecast:[CurrentForecast]!
     getShortTermForecast:[ShortTermForecast]!

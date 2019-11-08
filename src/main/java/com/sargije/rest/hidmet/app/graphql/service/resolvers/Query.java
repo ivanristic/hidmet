@@ -33,16 +33,18 @@ public class Query implements GraphQLQueryResolver {
          return hidmetDataService.getAirQuality();
     }
 
+    public List<Station> getStations(){return hidmetDataService.getStationsForAirQuality();}
+
     public List<City> getAllCities(@NotNull ForecastType forecastType){
 
         List<City> cities = null;
 
         if (forecastType.equals(ForecastType.CURRENT)) {
-            cities = hidmetDataService.getCityForCurrentForecastsRepository();//cityRepository.findDistinctByCurrentForecastsNotNull();
+            cities = hidmetDataService.getCityForCurrentForecasts();//cityRepository.findDistinctByCurrentForecastsNotNull();
         }else if(forecastType.equals(ForecastType.FIVEDAY)){
-            cities = hidmetDataService.getCityForFivedayForecastRepository();//cityRepository.findDistinctByFivedayForecastsNotNull();
+            cities = hidmetDataService.getCityForFivedayForecast();//cityRepository.findDistinctByFivedayForecastsNotNull();
         }else if(forecastType.equals(ForecastType.SHORT_TERM)){
-            cities = hidmetDataService.getCityForShortTermForecastRepository();//cityRepository.findDistinctByShortTermForecastsNotNull();
+            cities = hidmetDataService.getCityForShortTermForecast();//cityRepository.findDistinctByShortTermForecastsNotNull();
         }else if(forecastType.equals(ForecastType.ALL)) {
             cities = (List<City>) hidmetDataService.getAllCities();//cityRepository.findAll();
         }else {

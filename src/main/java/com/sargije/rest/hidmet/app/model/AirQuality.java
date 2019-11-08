@@ -5,7 +5,6 @@ import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.math.BigInteger;
 import java.time.LocalDateTime;
 
 @Entity
@@ -17,6 +16,7 @@ public class AirQuality implements Serializable {
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO, generator="native")
     @GenericGenerator(name = "native", strategy = "native")
+    @GraphQLIgnore
     private Long id;
 
     //bi-directional many-to-one association to City
@@ -66,7 +66,8 @@ public class AirQuality implements Serializable {
     @Column(name="table_time")
     private LocalDateTime tableTime;
 
-    private BigInteger active;
+    @GraphQLIgnore
+    private boolean active;
 
     public Long getId() {
         return id;
@@ -196,11 +197,11 @@ public class AirQuality implements Serializable {
         this.tableTime = tableTime;
     }
 
-    public BigInteger getActive() {
+    public boolean getActive() {
         return active;
     }
 
-    public void setActive(BigInteger active) {
+    public void setActive(boolean active) {
         this.active = active;
     }
 }

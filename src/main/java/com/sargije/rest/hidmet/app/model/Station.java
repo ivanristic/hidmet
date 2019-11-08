@@ -15,6 +15,7 @@ public class Station implements Serializable {
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO, generator="native")
     @GenericGenerator(name = "native", strategy = "native")
+    @GraphQLIgnore
     private Long id;
 
     //bi-directional many-to-one association to City

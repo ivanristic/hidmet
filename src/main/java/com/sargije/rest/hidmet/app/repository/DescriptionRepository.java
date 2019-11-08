@@ -10,5 +10,6 @@ public interface DescriptionRepository extends CrudRepository<Description, Long>
 
 	@Cacheable("description")
 	Description findByImageLocation(String imageLocation);
+
 	int countByDescriptionNotNull();
 }

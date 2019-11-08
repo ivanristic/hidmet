@@ -2,8 +2,10 @@ package com.sargije.rest.hidmet.app.model;
 // Generated Jun 14, 2017 10:17:23 PM by Hibernate Tools 5.2.3.Final
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.Set;
 
 /**
@@ -11,7 +13,8 @@ import java.util.Set;
  */
 @Entity
 @Table(name = "users")
-public class Users implements java.io.Serializable {
+@EntityListeners(AuditingEntityListener.class)
+public class Users  implements Serializable {
 
 	/**
 	 * 

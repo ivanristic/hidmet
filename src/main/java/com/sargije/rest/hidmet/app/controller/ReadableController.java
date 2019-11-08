@@ -55,6 +55,15 @@ public class ReadableController {
 		return "shortterm";
 	}
 
+	@GetMapping(value = "/airquality")
+	public String getAirQuality(Model model){
+
+		ResponseEntity<AirQuality[]> airQuality = restTemplate.getForEntity("http://localhost:8080/api/v1/airquality", AirQuality[].class);
+		ResponseEntity<Station[]> stations = restTemplate.getForEntity("http://localhost:8080/api/v1/station/airquality", Station[].class);
+		model.addAttribute("listAirQuality", airQuality.getBody());
+		model.addAttribute("stationList", stations.getBody());
+		return "airquality";
+	}
 	@GetMapping(value = "/user")
 	public String getUserRegistrationPage(Model model){
 		model.addAttribute("user", new User());

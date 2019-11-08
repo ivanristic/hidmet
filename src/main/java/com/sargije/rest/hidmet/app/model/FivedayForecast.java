@@ -7,7 +7,6 @@ import javax.persistence.*;
 import javax.validation.constraints.Digits;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
-import java.math.BigInteger;
 import java.time.LocalDateTime;
 
 
@@ -38,7 +37,7 @@ public class FivedayForecast implements Serializable {
 
 	@NotNull
 	@GraphQLIgnore
-	private BigInteger active;
+	private boolean active;
 
 	@Column(name="table_time")
 	private LocalDateTime tableTime;
@@ -63,7 +62,7 @@ public class FivedayForecast implements Serializable {
 
 	//public BigInteger getActive() {return this.active;}
 
-	public void setActive(BigInteger active) {
+	public void setActive(boolean active) {
 		this.active = active;
 	}
 
