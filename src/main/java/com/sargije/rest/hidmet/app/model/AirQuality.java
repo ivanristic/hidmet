@@ -197,6 +197,7 @@ public class AirQuality implements Serializable {
         this.tableTime = tableTime;
     }
 
+
     public boolean getActive() {
         return active;
     }
@@ -204,4 +205,5 @@ public class AirQuality implements Serializable {
     public void setActive(boolean active) {
         this.active = active;
     }
+
 }

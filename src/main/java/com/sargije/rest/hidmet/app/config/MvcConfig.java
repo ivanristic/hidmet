@@ -1,6 +1,7 @@
 package com.sargije.rest.hidmet.app.config;
 
 import com.coxautodev.graphql.tools.SchemaParserDictionary;
+import com.sargije.rest.hidmet.app.interceptors.CustomRequestLoggingInterceptor;
 import com.sargije.rest.hidmet.app.model.Authorities;
 import com.sargije.rest.hidmet.app.model.AuthoritiesId;
 import io.aexp.nodes.graphql.GraphQLTemplate;
@@ -9,12 +10,28 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.support.BasicAuthenticationInterceptor;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 
 @Configuration
 public class MvcConfig implements WebMvcConfigurer {
 
+	@Override
+	public void addInterceptors(InterceptorRegistry registry) {
+		registry.addInterceptor(new CustomRequestLoggingInterceptor());
+	}
+/**
+	@Bean
+	public CommonsRequestLoggingFilter requestLoggingFilter() {
+		CommonsRequestLoggingFilter requestLoggingFilter = new CommonsRequestLoggingFilter();
+		requestLoggingFilter.setIncludeClientInfo(false);
+		requestLoggingFilter.setIncludeHeaders(false);
+		requestLoggingFilter.setIncludeQueryString(true);
+		requestLoggingFilter.setIncludePayload(true);
+		return requestLoggingFilter;
+	}
+*/
 	@Bean
 	@CacheEvict(allEntries = true, cacheNames = {"currentActiveForecasts"})
 	public void currentForecastCacheEvict() {
@@ -57,8 +74,5 @@ public class MvcConfig implements WebMvcConfigurer {
 	public SchemaParserDictionary schemaParserDictionary() {
 		return new SchemaParserDictionary().add(Authorities.class).add(AuthoritiesId.class);
 	}
-
-
-
 
 }

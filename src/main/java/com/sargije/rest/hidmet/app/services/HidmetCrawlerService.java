@@ -12,6 +12,8 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Entities;
 import org.jsoup.select.Elements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -22,10 +24,13 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Stream;
 
 
 @Service
 public class HidmetCrawlerService {
+
+	Logger logger = LoggerFactory.getLogger(HidmetCrawlerService.class);
 
 	@Autowired
 	MvcConfig mvcConfig;
@@ -72,132 +77,139 @@ public class HidmetCrawlerService {
 	@Value("${hidmet.forecast.url}")
 	private String foreacasURL;
 
-	//private final String cronFivedayForecast = "0 0/15 11,12 * * *";
-	//private final String cronCurrentForecast = "0 8-10,15,25,35,45 * * * *";
-	//private final String cronShortermForecast = "0 0/15 4,5,9,11,12 * * *";
+	//private final String cronFivedayForecast = "0 0/15 10-13 * * *";
+	//private final String cronCurrentForecast = "0 7-17,20,30,40,50 * * * *";
+	//private final String cronShortermForecast = "0 0/15 4-13 * * *";
 
 	private final String cronFivedayForecast = "0 0/10 * * * *";
-	private final String cronCurrentForecast = "0 0/5 * * * *";
+    private final String cronCurrentForecast = "0 0/3 * * * *";
 	private final String cronShortermForecast = "0 0/10 * * * *";
 	private final String cronAirQuality = "0 0/10 * * * *";
 
 	@Scheduled(cron = cronFivedayForecast)
-	public void populateFivedayForecast() {	
-		Document doc;
+	private void populateFivedayForecast() {
+		Document docFivedayForecastHref;
+		// setting dateTime pattern
+        DateTimeFormatter dateTimeFormatterFiveDay = DateTimeFormatter.ofPattern("dd.MM.yyyy. HH:mm:ss");
 
-        //SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yyyy. HH:mm:ss");
-
-        DateTimeFormatter dtformatter = DateTimeFormatter.ofPattern("dd.MM.yyyy. HH:mm:ss");
-
-
+		//logger.info("Fiveday Forecast crawler initialized");
 			try {
-				doc = Jsoup.connect(foreacasURL+"prognoza/stanica.php").get();
+				docFivedayForecastHref = Jsoup.connect(foreacasURL+"prognoza/stanica.php").get();
 	//			String[] stringTableTimestamp = doc.select("table tfoot tr td").get(0).text().split("\u00a0");
-				LocalDateTime tableTime = null;
-				if(doc.select("table tfoot tr td").get(0).text().length() > 40){
-					//tableTime = formatter.parse(doc.select("table tfoot tr td").get(0).text().substring(20, 40));
-					tableTime = LocalDateTime.parse(doc.select("table tfoot tr td").get(0).text().substring(20, 40), dtformatter);
+				LocalDateTime tableTime;
+				// checking lenght of date field to verify if forecast is updated or regular
+				if(docFivedayForecastHref.select("table tfoot tr td").get(0).text().length() > 40){
+					// if forecast is updated date is starting form character 20 to 40
+					tableTime = LocalDateTime.parse(docFivedayForecastHref.select("table tfoot tr td").get(0).text().substring(20, 40), dateTimeFormatterFiveDay);
 				}else{
-					//tableTime = formatter.parse(doc.select("table tfoot tr td").get(0).text().substring(0, 20));
-					tableTime = LocalDateTime.parse(doc.select("table tfoot tr td").get(0).text().substring(0, 20), dtformatter);
+					// if forecast isn't updated date is starting from character 0 to 20
+					tableTime = LocalDateTime.parse(docFivedayForecastHref.select("table tfoot tr td").get(0).text().substring(0, 20), dateTimeFormatterFiveDay);
 				}
-				//OffsetDateTime tableTime = OffsetDateTime.of(tt, ZoneOffset.of("+2"));
-				doc.select("table").remove();
-				Elements links = doc.select("div#sadrzaj div").get(0).select("a[href]");
-							
 
-				boolean isTableTime = fiveDayForecastRepository.existsByActiveAndTableTime(true, tableTime);
-				if(!isTableTime){
+				// verify that forecast has changed
+				if(!fiveDayForecastRepository.existsByActiveAndTableTime(true, tableTime)){
+
+				logger.info("Fiveday forecast populating data " + LocalDateTime.now());
+
+				docFivedayForecastHref.select("table").remove();
+				// getting all the links for forecast
+				Elements links = docFivedayForecastHref.select("div#sadrzaj div").get(0).select("a[href]");
 
 
-						mvcConfig.fivedayForecastCacheEvict();
 
 
-                    Calendar calendar = new GregorianCalendar();
-                    //	Date d = calendar.getTime();
+					// cache evict and prepare for fresh data
+					mvcConfig.fivedayForecastCacheEvict();
 
-                    LocalDate previousDay = LocalDate.now().minusDays(1);
-         //           List<ForecastDate> forecastDates = forecastDateRepository.findByForecastDateAfter(LocalDate.from(previousDay.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant()));
-					List<ForecastDate> forecastDates = forecastDateRepository.findByForecastDateAfter(previousDay);
-					//formatter = new SimpleDateFormat("dd.MM.yyyy");
-					dtformatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
-/*
+                    // get list of forecastsDates after yesterday
+					List<ForecastDate> forecastDates = forecastDateRepository.findByForecastDateAfter(LocalDate.now().minusDays(1));
 
-					List<FivedayForecast> listFiveDayForecastModel = fiveDayForecastRepository.findByActive(BigInteger.ONE);
-					
-					for(FivedayForecast fiveDayForecastModel : listFiveDayForecastModel){
-						fiveDayForecastModel.setActive(BigInteger.ZERO);
-						
-					}
+					//changing dateTime pattern to reflect new page
+					//dateTimeFormatterFiveDay = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
-					fiveDayForecastRepository.saveAll(listFiveDayForecastModel);
-*/
-
+					//updating all forecasts to false
 					fiveDayForecastRepository.updateFivedayForecastActiveToFalse();
 
 					List<FivedayForecast> listFiveDayForecast = new ArrayList<FivedayForecast>();
+					//getting list of Cities and Descriptions
 					List<City> cities = (List<City>) cityRepository.findAll();
                     List<Description> currentDescriptions = (List<Description>) descriptionRepository.findAll();
+                    // looping trough links list
 					for(Element href : links){
 						
-						String hcity = href.text();
-						City city = null;
+						//String hcity = href.text();
+						City city;
 
+						// verify that there is city from link in list of Cities, if not create one, save to repository and add to list
+						// I can change this not to create city in catch block (exists)
 						try {
-							city = cities.stream().filter(p -> p.getCityName().equals(hcity)).findFirst().get();
+							city = cities.stream().filter(p -> p.getCityName().equals(href.text())).findFirst().get();
 						}catch(NoSuchElementException e){
 							city = new City();
-							city.setCityName(hcity);
+							city.setCityName(href.text());
 							cityRepository.save(city);
 							cities.add(city);
 						}
 
-						//StringBuilder sb = new StringBuilder();
-						//sb.append("http://www.hidmet.gov.rs/latin/prognoza/");
-						//sb.append(href.attr("href"));
-												
+						// getting new page from link
+						Document docFivedayForecast;
 						try {
 							Document.OutputSettings settings = new Document.OutputSettings();
 							settings.escapeMode(Entities.EscapeMode.xhtml);
 
-							doc = Jsoup.connect(foreacasURL+"prognoza/"+href.attr("href")).execute().parse();
-							doc.outputSettings().escapeMode(Entities.EscapeMode.xhtml);
+							docFivedayForecast = Jsoup.connect(foreacasURL+"prognoza/"+href.attr("href")).execute().parse();
+							docFivedayForecast.outputSettings().escapeMode(Entities.EscapeMode.xhtml);
 
-							Elements tbodyRowsMaxTemp = doc.select("div#sadrzaj div table  tbody tr").get(1).select("td");
-	  						Elements tbodyRowsMinTemp = doc.select("div#sadrzaj div table  tbody tr").get(3).select("td");
-	  						Elements tbodyRowsImage = doc.select("div#sadrzaj div table  tbody tr").get(5).select("td");
-	  						Elements theadRows = doc.select("div#sadrzaj div table  thead").get(0).select("tr th");
-	  						Elements theadImages = doc.select("div#sadrzaj div table").get(1).select("tbody tr td");
-	  							  						
+							// getting elements from forecast
+							Elements tbodyRowsMaxTemp = docFivedayForecast.select("div#sadrzaj div table  tbody tr").get(1).select("td");
+	  						Elements tbodyRowsMinTemp = docFivedayForecast.select("div#sadrzaj div table  tbody tr").get(3).select("td");
+	  						Elements tbodyRowsImage = docFivedayForecast.select("div#sadrzaj div table  tbody tr").get(5).select("td");
+	  						Elements theadRows = docFivedayForecast.select("div#sadrzaj div table  thead").get(0).select("tr th");
+	  						Elements theadImages = docFivedayForecast.select("div#sadrzaj div table").get(1).select("tbody tr td");
 
-							int cnt = descriptionRepository.countByDescriptionNotNull();
-  							if((theadImages.size() / 2 ) - 1 != cnt) {
+							//int cnt = descriptionRepository.countByDescriptionNotNull();
+
+							// check that size of description is not same as size in repository, if not populate with fresh data and return list
+							/*
+  							if((theadImages.size() / 2 ) - 1 != descriptionRepository.countByDescriptionNotNull()) {
 								mvcConfig.descriptionCacheEvict();
   								populateDescriptionAndImageForForecast();
   								currentDescriptions = (List<Description>) descriptionRepository.findAll();
   							}
-
+ 							*/
+							//Calendar calendar = new GregorianCalendar();
 	  						for(int i=2; i<theadRows.size()-1; i++){
 	  							String[] stringForecastTimestamp = theadRows.get(i).text().split(" ");
-	  							StringBuilder sbu = new StringBuilder();
-	  							sbu.append(stringForecastTimestamp[1]);
-	  							sbu.append(calendar.get(Calendar.YEAR));
-	  							//Date parseForecastDate = formatter.parse(sbu.toString());
-                                LocalDate parseForecastDate = LocalDate.parse(sbu.toString(), dtformatter);
-                                ForecastDate forecastDate;// = null;
+
+								// extracting date from link, verify that Date exist and if not insert date value in table
+								/** @TODO
+								 * check if it's the same month, if it is create local date withDayOfMonth(int dayOfMonth)
+								 * if not use plusMonths(long month)
+								 *
+
+								*/
+
+
+								LocalDate parseForecastDate;// = LocalDate.now().plusDays(Integer.parseInt(stringForecastTimestamp[1].substring(0, 2)) - LocalDate.now().getDayOfMonth());
+								//System.out.println(stringForecastTimestamp[1].substring(3,  5));
+								if(Integer.parseInt(stringForecastTimestamp[1].substring(3, 5)) == LocalDate.now().getMonth().getValue()){
+									parseForecastDate = LocalDate.now().withDayOfMonth(Integer.parseInt(stringForecastTimestamp[1].substring(0, 2)));
+								}else{
+									parseForecastDate = LocalDate.now().withDayOfMonth(Integer.parseInt(stringForecastTimestamp[1].substring(0, 2))).plusMonths(1L);
+								}
+                                ForecastDate forecastDate;
                                 try {
                                     forecastDate = forecastDates.stream().filter(p -> p.getForecastDate().equals(parseForecastDate)).findFirst().get();
 
-                                    //ForecastDate forecastDate = forecastDateRepository.findByForecastDate(parseForecastDate);
                                 }catch(NoSuchElementException e){
 
 	  								forecastDate = new ForecastDate();
                                     forecastDate.setForecastDate(parseForecastDate);
 	  								forecastDateRepository.save(forecastDate);
 									forecastDates.add(forecastDate);
-	  								//forecastDate = forecastDateRepository.findByForecastDate(parseForecastDate);
 	  							}
 
+                                // create new forecast and and populate from fields
 								FivedayForecast fiveDayForecastModel = new FivedayForecast();
 	  							fiveDayForecastModel.setCity(city);
 	  							fiveDayForecastModel.setForecastDate(forecastDate);
@@ -209,8 +221,17 @@ public class HidmetCrawlerService {
 	  							fiveDayForecastModel.setActive(true);
 
 	  							String img = tbodyRowsImage.get(i).select("img").attr("src");
-	  							Description image = currentDescriptions.stream().filter(p -> p.getImageLocation().equals(img)).findFirst().get();
-	  									
+								Description image;
+
+								try {
+									image = currentDescriptions.stream().filter(p -> p.getImageLocation().equals(img)).findFirst().get();
+								} catch (NoSuchElementException e) {
+									Description descriptionModel = new Description();
+									descriptionModel.setImageLocation(img);
+									descriptionRepository.save(descriptionModel);
+									currentDescriptions.add(descriptionModel);
+									image = descriptionModel;
+								}
 
 	  							fiveDayForecastModel.setDescription(image);
 	  							fiveDayForecastModel.setTableTime(tableTime);
@@ -226,153 +247,164 @@ public class HidmetCrawlerService {
 						
 						
 					}
-					/** all in one update */
+					/** all in one update to database*/
 					fiveDayForecastRepository.saveAll(listFiveDayForecast);
-
+					/** publish to GraphQL subscribers */
 					fivedayForecastPublisher.publish(listFiveDayForecast);
 				}else{
 
 				}
 			} catch (IOException e) {
-                System.out.println(LocalDateTime.now());
+                System.out.println("FivedayForecast "+LocalDateTime.now());
 				e.printStackTrace();
 			}
 
     }
 	
 	@Scheduled(cron = cronCurrentForecast)
-	public void populateCurrentForecast() {
+	private void populateCurrentForecast() {
 
-		Document doc;
-
-		//SimpleDateFormat formatter = new SimpleDateFormat("HH:mm dd.MM.yyyy");
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm dd.MM.yyyy");
+		Document docCurrentForecast = null;
+		// setting dateTime pattern
+		DateTimeFormatter dtFormatterCurrentForecast = DateTimeFormatter.ofPattern("HH:mm dd.MM.yyyy");
 			try {
-				doc = Jsoup.connect(foreacasURL + "osmotreni/index.php").get();
-				doc.outputSettings().escapeMode(Entities.EscapeMode.xhtml);
+				//connecting to webpage
+				docCurrentForecast = Jsoup.connect(foreacasURL + "osmotreni/index.php").get();
+				docCurrentForecast.outputSettings().escapeMode(Entities.EscapeMode.xhtml);
+				//getting rows of interest
+				Elements tbodyRows = docCurrentForecast.select("table tbody").get(0).select("tr");
+				//getting date and formating
+				LocalDateTime tableTime = LocalDateTime.parse(docCurrentForecast.select("table tfoot tr td").get(0).text().substring(22, 38), dtFormatterCurrentForecast);
 
-				Elements tbodyRows = doc.select("table tbody").get(0).select("tr");
+				//if there is no forecast with that date continue
+				if(!currentForecastRepository.existsByActiveAndTableTime(true, tableTime)){
 
-				LocalDateTime tableTime = LocalDateTime.parse(doc.select("table tfoot tr td").get(0).text().substring(18, 34), formatter);
-				//OffsetDateTime tableTime = OffsetDateTime.of(tt, ZoneOffset.of("+2"));
-				boolean isTableTime = currentForecastRepository.existsByActiveAndTableTime(true, tableTime);
-				if(!isTableTime){
+					logger.info("Current forecast populating data " + LocalDateTime.now());
 					//clear cache
 					mvcConfig.currentForecastCacheEvict();
-
+					//preparing database for new entries
 					currentForecastRepository.updateCurrentForecastActiveToFalse();
-					List<CurrentForecast> listCurrentForecastsModel = new ArrayList<CurrentForecast>();
-					List<City> cities = (List<City>) cityRepository.findAll();
+					//getting values for cities and descriptions trough one call
+					List<City> cities = (List<City>) cityRepository.findDistinctByCurrentForecastsNotNull();//.findAll();
 					List<Description> descriptions = (List<Description>) descriptionRepository.findAll();
- 					for (int i = 0; i < tbodyRows.size(); i++) {
-						
-						Elements tdRows = tbodyRows.get(i).select("tr").select("td");
+
+					List<CurrentForecast> listCurrentForecastsModel = new ArrayList<CurrentForecast>();
+
+					//looping trough rows of interest
+					for (Element tbodyRow : tbodyRows) {
+
+						Elements tdRows = tbodyRow.select("tr").select("td");
+						//getting City and cleaning data
 						String hcity = tdRows.get(0).text().replaceAll("&nbsp; ", "");
 						City city = null;
 						Description description = null;
 
+						// getting city from list and if doesn't exist create one
 						try {
 							city = cities.stream().filter(p -> p.getCityName().equals(hcity)).findFirst().get();
-						}catch(NoSuchElementException e){
+						} catch (NoSuchElementException e) {
 							city = new City();
 							city.setCityName(hcity);
 							cityRepository.save(city);
-							//cities.add(city);
-							cities = (List<City>) cityRepository.findAll();
+							cities.add(city);
+							//cities = (List<City>) cityRepository.findAll();
 						}
-						if(tdRows.size() == 9){
+						// if there is all data in row (avoiding jsoup bug)
+						if (tdRows.size() == 9) {
 							CurrentForecast currentForecastModel = new CurrentForecast();
 							currentForecastModel.setCity(city);
-							
-							currentForecastModel.setTemperature(new Integer(tdRows.get(1).text().replaceAll("[^\\d]", "" )));//.trim().replaceAll("&nbsp; ", "")));
-							currentForecastModel.setPressure(new Float(tdRows.get(2).text().replaceAll("[^\\d.]", "" )));//.trim().replaceAll("&nbsp; ", "")));
+							// getting values from html fields
+							currentForecastModel.setTemperature(new Integer(tdRows.get(1).text().replaceAll("[^\\d]", "")));//.trim().replaceAll("&nbsp; ", "")));
+							currentForecastModel.setPressure(new Float(tdRows.get(2).text().replaceAll("[^\\d.]", "")));//.trim().replaceAll("&nbsp; ", "")));
 							currentForecastModel.setWindDirection(tdRows.get(3).text().trim().replaceAll("&nbsp; ", ""));
 							currentForecastModel.setWindSpeed(tdRows.get(4).text().trim().replaceAll("&nbsp; ", ""));
-							currentForecastModel.setHumidity(new Integer(tdRows.get(5).text().replaceAll("[^\\d]", "" )));//.trim().replaceAll("&nbsp; ", "")));
-							currentForecastModel.setFeelsLike(new Integer(tdRows.get(6).text().replaceAll("[^\\d]", "" )));//.trim().replaceAll("&nbsp; ", "")));
-							//currentForecastModel.setImage(tdRows.get(7).select("img").attr("src"));
+							currentForecastModel.setHumidity(new Integer(tdRows.get(5).text().replaceAll("[^\\d]", "")));//.trim().replaceAll("&nbsp; ", "")));
+							currentForecastModel.setFeelsLike(new Integer(tdRows.get(6).text().replaceAll("[^\\d]", "")));//.trim().replaceAll("&nbsp; ", "")));
 							String img = tdRows.get(7).select("img").attr("src");
-  							//Description image = descriptionRepository.findByImageLocation(img);
+							// getting description and if doesn't exist create one with value from field
+							try {
+								description = descriptions.stream().filter(p -> p.getImageLocation().equals(img)).findFirst().get();
 
-							try{
-  								description = descriptions.stream().filter(p -> p.getImageLocation().equals(img)).findFirst().get();
-
-							}catch(NoSuchElementException e){
-  								Description descriptionModel = new Description();
+							} catch (NoSuchElementException e) {
+								Description descriptionModel = new Description();
 								descriptionModel.setImageLocation(img);
-  								descriptionRepository.save(descriptionModel);
+								descriptionRepository.save(descriptionModel);
 								description = descriptionModel;
 								descriptions.add(description);
-  							}
-  				
-  							currentForecastModel.setDescription(description);
-							
+							}
+
+							currentForecastModel.setDescription(description);
+
 							currentForecastModel.setTableTime(tableTime);
 							currentForecastModel.setActive(true);
 							listCurrentForecastsModel.add(currentForecastModel);
 						}
 					}
+					/** all in one commit */
 					currentForecastRepository.saveAll(listCurrentForecastsModel);
+					/** publish to graphql subscribers */
 					currentForecastPublisher.publish(listCurrentForecastsModel);
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
-				System.out.println(LocalDateTime.now());
+				System.out.println("CurrentForecast" + LocalDateTime.now());
 			}
-					
+
 	}
 	
 	@Scheduled(cron = cronShortermForecast)
-	public void populateShortTermForecast() {
-		Document doc;
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy. HH:mm:ss");
+	private void populateShortTermForecast() {
+		Document docShortTermForecast;
+		// setting dateTime pattern
+		DateTimeFormatter dateTimeFormatterShortTermForecast = DateTimeFormatter.ofPattern("dd.MM.yyyy. HH:mm:ss");
 			try {
 
-				doc = Jsoup.connect(foreacasURL+"prognoza/index.php").get();
-				doc.outputSettings().escapeMode(Entities.EscapeMode.xhtml);
+				docShortTermForecast = Jsoup.connect(foreacasURL+"prognoza/index.php").get();
+				docShortTermForecast.outputSettings().escapeMode(Entities.EscapeMode.xhtml);
 
+				// getting table
+				Element table = docShortTermForecast.select("table").get(0); // select the first table.
 
-				Element table = doc.select("table").get(0); // select the first table.
+				// splitting table to header footer and body
 				Element thead = table.select("thead tr").get(0);
 				Element tfoot = table.select("tfoot tr td").get(0);
 				Element tbody = table.select("tbody").get(0);
-				LocalDateTime tableTime = LocalDateTime.parse(tfoot.text().substring(20, 40), formatter);
+				LocalDateTime tableTime = LocalDateTime.parse(tfoot.text().substring(20, 40), dateTimeFormatterShortTermForecast);
 				Map<Integer, LocalDate> listStringDates = new HashMap<>();
-				boolean isTableTyme = shortTermForecastRepository.existsByActiveAndTableTime(true, tableTime);
-				if(!isTableTyme){
+				// verify if short term forecast exists for date and if not continue
+				if(!shortTermForecastRepository.existsByActiveAndTableTime(true, tableTime)){
+
+					logger.info("Short term forecast populating data " + LocalDateTime.now());
 					//clear cache
 					mvcConfig.shortTearmForecastCacheEvict();
 
 					List<Description> currentDescriptions = (List<Description>) descriptionRepository.findAll();
 
 
-					List<ShortTermForecast> listShortTermForecast = new ArrayList<>();//shortTermForecastRepository.findByActive(BigInteger.ONE);
+					List<ShortTermForecast> listShortTermForecast = new ArrayList<>();
 
-                    LocalDate previousDay = LocalDate.now().minusDays(1);
-                    //List<ForecastDate> forecastDates = forecastDateRepository.findByForecastDateAfter(LocalDate.from(previousDay.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant()));
-					List<ForecastDate> forecastDates = forecastDateRepository.findByForecastDateAfter(previousDay);
+                   // LocalDate previousDay = LocalDate.now().minusDays(1);
+					// getting all dates starting from yesterday
+					List<ForecastDate> forecastDates = forecastDateRepository.findByForecastDateAfter(LocalDate.now().minusDays(1));
 
-					/*for(ShortTermForecast shortTermForecast : listShortTermForecast ){
-						shortTermForecast.setActive(false);
-					}	*/
-
+					// archiving records and preparing database from new data
 					shortTermForecastRepository.updateShortTermForecastActiveToFalse();
 
 					Elements theadRows = thead.select("th");
-
+					// looping trough thead skipping first row because it holds column names
+					// loop use to collect all dates and inserting them to database
 					for (int i = 1; i < theadRows.size(); i++) { // first row is  the col names so skip it.
 
 						Element th = theadRows.get(i);
-				//		String[] stringDate = th.text().split("\u00a0\u00a0");
-
-						//formatter = new SimpleDateFormat("dd.MM.yyyy.");
+						//
                         DateTimeFormatter dtformatter = DateTimeFormatter.ofPattern(" dd.MM.yyyy.");
-						//Date parseForecastDate = formatter.parse(th.text().substring(th.text().lastIndexOf(' ')));
+                        // getting date in new format
                         LocalDate parseForecastDate = LocalDate.parse(th.text().substring(th.text().lastIndexOf(' ')), dtformatter);
                         listStringDates.put(i, parseForecastDate);
                         ForecastDate forecastDate;// = null;
-                        try {
-                            //forecastDate = forecastDateRepository.findByForecastDate(parseForecastDate);
+						// if there is no date insert it to database
+						// @TODO check if this code is redundant?
+                        /**try {
                             forecastDate = forecastDates.stream().filter(p -> p.getForecastDate().equals(parseForecastDate)).findFirst().get();
                         }catch(NoSuchElementException e){
 							//ForecastDate
@@ -380,17 +412,15 @@ public class HidmetCrawlerService {
 							forecastDate.setForecastDate(parseForecastDate);
 							forecastDateRepository.save(forecastDate);
 							forecastDates.add(forecastDate);
-							//forecastDate = forecastDateModel;//forecastDateRepository.findByForecastDate(parseForecastDate);
-						}
+						}*/
 					}
 					
 					Elements tbodyRows = tbody.select("tr");
 
                     List<City> cities = (List<City>) cityRepository.findAll();
+					// looping trough table bodies and collecting data (Cities and forecast values)
+					for (Element tr : tbodyRows) {
 
-					for (int i = 0; i < tbodyRows.size(); i++) {
-
-						Element tr = tbodyRows.get(i);
 						Elements tdRows = tr.select("td");
 
 						int tdSize = tdRows.size();
@@ -402,77 +432,89 @@ public class HidmetCrawlerService {
 
 						for (int j = 0; j < tdSize; j++) {
 							Element td = tdRows.get(j);
-
+							// if it is firsc column it is city
 							if (j == 0) {
 								String hcity = td.text();
 
-
-								try{
+								// verify if there is city in database and if not insert one
+								try {
 									city = cities.stream().filter(p -> p.getCityName().equals(hcity)).findFirst().get();
-								}catch(NoSuchElementException e){
+								} catch (NoSuchElementException e) {
 									city = new City();
 									city.setCityName(hcity);
 									cityRepository.save(city);
 									cities.add(city);
 								}
-
+							// other than first column
 							} else {
+								// geting modulo 3 value
 								switch (j % 3) {
+									// if 0 than its minimum temperature
+									case 0:
+										minTemp = new Integer(td.html());
+										break;
+									// if 1 it is maximum temperature
+									case 1:
+										maxTemp = new Integer(td.html());
+										break;
+									// if 2  it is forecast date
+									case 2:
+										ForecastDate forecastDate;// = null;
+										LocalDate parseForecastDate = listStringDates.get(j / 3 + 1);
+										try {
+											forecastDate = forecastDates.stream().filter(p -> p.getForecastDate().equals(parseForecastDate)).findFirst().get();
+										} catch (NoSuchElementException e) {
+											//ForecastDate
+											forecastDate = new ForecastDate();
+											forecastDate.setForecastDate(parseForecastDate);
+											forecastDateRepository.save(forecastDate);
+											forecastDates.add(forecastDate);
+										}
+										// setting values for short term forecast
+										ShortTermForecast shortTermForecastModel = new ShortTermForecast();
+										shortTermForecastModel.setTableTime(tableTime);
+										shortTermForecastModel.setActive(true);
+										if (minTemp != null) {
+											shortTermForecastModel.setMinTemperature(minTemp);
+										}
+										shortTermForecastModel.setMaxTemperature(maxTemp);
+										shortTermForecastModel.setCity(city);
+										shortTermForecastModel.setForecastDate(forecastDate);
+										String img = td.select("img").attr("src");
+										// if there are no descriptions collect all of them in separate method
+										/*if (currentDescriptions.stream().map(Description::getImageLocation).noneMatch(img::equals)) {
+											mvcConfig.descriptionCacheEvict();
 
-								case 0:
-									minTemp = new Integer(td.html());
-									break;
-								case 1:
-									maxTemp = new Integer(td.html());
-									break;
-								case 2:
-									//ForecastDate forecastDate = forecastDateRepository.findByForecastDate(listStringDates.get(j / 3 + 1));
-									ForecastDate forecastDate;// = null;
-									LocalDate parseForecastDate = listStringDates.get(j / 3 + 1);
-									try {
-										//forecastDate = forecastDateRepository.findByForecastDate(parseForecastDate);
-										forecastDate = forecastDates.stream().filter(p -> p.getForecastDate().equals(parseForecastDate)).findFirst().get();
-									}catch(NoSuchElementException e){
-										//ForecastDate
-										forecastDate = new ForecastDate();
-										forecastDate.setForecastDate(parseForecastDate);
-										forecastDateRepository.save(forecastDate);
-										forecastDates.add(forecastDate);
-										//forecastDate = forecastDateModel;//forecastDateRepository.findByForecastDate(parseForecastDate);
-									}
+											populateDescriptionAndImageForForecast();
+											currentDescriptions = (List<Description>) descriptionRepository.findAll();
+										}
 
-									ShortTermForecast shortTermForecastModel = new ShortTermForecast();
-									shortTermForecastModel.setTableTime(tableTime);
-									shortTermForecastModel.setActive(true);
-									if (minTemp != null) {
-										shortTermForecastModel.setMinTemperature(minTemp);
-									}
-									shortTermForecastModel.setMaxTemperature(maxTemp);
-									shortTermForecastModel.setCity(city);
-									shortTermForecastModel.setForecastDate(forecastDate);
-									String img = td.select("img").attr("src");
-									
-									if(!currentDescriptions.stream().map(Description::getImageLocation).filter(img::equals).findFirst().isPresent()) {
-										mvcConfig.descriptionCacheEvict();
-
-										populateDescriptionAndImageForForecast();
-										currentDescriptions = (List<Description>) descriptionRepository.findAll();
-									}
-									Description image = currentDescriptions.stream().filter(p -> p.getImageLocation().equals(img)).findFirst().get();
-
-		  							shortTermForecastModel.setDescription(image);
-									listShortTermForecast.add(shortTermForecastModel);
-									break;
+										 */
+										Description image;
+										try {
+											image = currentDescriptions.stream().filter(p -> p.getImageLocation().equals(img)).findFirst().get();
+										} catch (NoSuchElementException e) {
+											Description descriptionModel = new Description();
+											descriptionModel.setImageLocation(img);
+											descriptionRepository.save(descriptionModel);
+											currentDescriptions.add(descriptionModel);
+											image = descriptionModel;
+										}
+										shortTermForecastModel.setDescription(image);
+										listShortTermForecast.add(shortTermForecastModel);
+										break;
 
 								}
 							}
 						}
 					}
+					/** all in one commit */
 					shortTermForecastRepository.saveAll(listShortTermForecast);
-
+					/** publish to graphql subscribers */
 					shortTermForecastPublisher.publish(listShortTermForecast);
 				}
 			}catch (IOException e) {
+				System.out.println("ShortTermForecast" + LocalDateTime.now());
 
 				e.printStackTrace();
 
@@ -480,22 +522,21 @@ public class HidmetCrawlerService {
 		
 	}
 	@Scheduled(cron = cronAirQuality)
-	public void populateAirQuality() {
+	private void populateAirQuality() {
 
-		Document doc;
+		Document docAirQuality;
 		Station station = null;
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy. HH:mm");
+		DateTimeFormatter dateTimeFormatterAirQuality = DateTimeFormatter.ofPattern("dd.MM.yyyy. HH:mm");
 
 		try {
 
-			doc = Jsoup.connect(airQualityURL + "stanicepodaci.php").execute().parse();
-			Elements tbodyStations = doc.select("table").get(0).select("tbody tr");
-			String time = doc.select("body > div.admin-wrapper > div.admin-content > div > div.admin-content-header > div > div > div").select("a[href]").get(0).text().substring(21);
-			LocalDateTime tableTime = LocalDateTime.parse(time, formatter);
-			//boolean isTableTyme = shortTermForecastRepository.existsByActiveAndTableTime(BigInteger.ONE, tableTime);
-			boolean isTableTime = airQualityRepository.existsByActiveAndTableTime(true, tableTime);
-			if (!isTableTime) {
-
+			docAirQuality = Jsoup.connect(airQualityURL + "stanicepodaci.php").execute().parse();
+			Elements tbodyStations = docAirQuality.select("table").get(0).select("tbody tr");
+			String time = docAirQuality.select("body > div.admin-wrapper > div.admin-content > div > div.admin-content-header > div > div > div").select("a[href]").get(0).text().substring(21);
+			LocalDateTime tableTime = LocalDateTime.parse(time, dateTimeFormatterAirQuality);
+			//boolean isTableTime = airQualityRepository.existsByActiveAndTableTime(true, tableTime);
+			if (!airQualityRepository.existsByActiveAndTableTime(true, tableTime)) {
+				logger.info("Air quality populating data " + LocalDateTime.now());
 			  //  populateStations();
 
 				List<Station> stations = (List<Station>) stationRepository.findAll();
@@ -503,11 +544,10 @@ public class HidmetCrawlerService {
 				List<AirQuality> listOfAirQuality = new ArrayList<AirQuality>();
 				for (Element trStation : tbodyStations) {
 					Elements tdStation = trStation.select("td");
-//				station = stations.stream().filter(e -> (e.getCity().getCityName() + ' ' +e.getStationName()).equals(trStation.get(0).text())).findAny().get();
 					try {
 						station = stations.parallelStream().filter(x -> {
 							if (x.getStationName().equals("")) {
-								if(tdStation.get(0).text().indexOf("-") != -1){
+								if(tdStation.get(0).text().contains("-")){
 									if (x.getCity().getCityName().equals(tdStation.get(0).text().substring(0, tdStation.get(0).text().indexOf("-")))) {
 										return true;
 									}
@@ -517,7 +557,7 @@ public class HidmetCrawlerService {
 									}
 								}
 							} else {
-								if(tdStation.get(0).text().indexOf("-") != -1)
+								if(tdStation.get(0).text().contains("-"))
 								{
 									if ((x.getCity().getCityName() + ' ' + x.getStationName()).equals(tdStation.get(0).text().substring(0, tdStation.get(0).text().indexOf("-")))) {
 										return true;
@@ -538,53 +578,74 @@ public class HidmetCrawlerService {
 						ne.printStackTrace();
 					}
 					AirQuality airQuality = new AirQuality();
-					airQuality.setStation(station);
+
 					airQuality.setSulfurDioxide(tdStation.get(2).text().equals("") || tdStation.get(2).text().equals("X") ? null : Float.valueOf(tdStation.get(2).text()));
 					airQuality.setNitrogenDioxide(tdStation.get(3).text().equals("") || tdStation.get(3).text().equals("X") ? null : Float.valueOf(tdStation.get(3).text()));
 					airQuality.setMonoNitrogenOxides(tdStation.get(4).text().equals("") || tdStation.get(4).text().equals("X") ? null : Float.valueOf(tdStation.get(4).text()));
 					airQuality.setNitrogenOxide(tdStation.get(5).text().equals("") || tdStation.get(5).text().equals("X") ? null : Float.valueOf(tdStation.get(5).text()));
-					airQuality.setParticleTenMicrometerPerDay(tdStation.get(6).text().equals("") || tdStation.get(6).text().equals("X") ? null : Float.valueOf(tdStation.get(6).text()));
-					airQuality.setParticleTenMicrometerPerHour(tdStation.get(7).text().equals("") || tdStation.get(7).text().equals("X") ? null : Float.valueOf(tdStation.get(7).text()));
-					airQuality.setParticleTwoAndAHalfMicrometerPerDay(tdStation.get(8).text().equals("") || tdStation.get(8).text().equals("X") ? null : Float.valueOf(tdStation.get(8).text()));
-					airQuality.setCarbonOxide(tdStation.get(9).text().equals("") || tdStation.get(9).text().equals("X") ? null : Float.valueOf(tdStation.get(9).text()));
-					airQuality.setOzon(tdStation.get(10).text().equals("") || tdStation.get(10).text().equals("X") ? null : Float.valueOf(tdStation.get(10).text()));
-					airQuality.setBenzen(tdStation.get(11).text().equals("") || tdStation.get(11).text().equals("X") ? null : Float.valueOf(tdStation.get(11).text()));
-					airQuality.setDd(tdStation.get(12).text().equals("") || tdStation.get(12).text().equals("X") ? null : Float.valueOf(tdStation.get(12).text()));
-					airQuality.setSpeed(tdStation.get(13).text().equals("") || tdStation.get(13).text().equals("X") ? null : Float.valueOf(tdStation.get(13).text()));
-					airQuality.setTemperature(tdStation.get(14).text().equals("") || tdStation.get(14).text().equals("X") ? null : Float.valueOf(tdStation.get(14).text()));
-					airQuality.setTableTime(tableTime);
-					airQuality.setActive(true);
-					listOfAirQuality.add(airQuality);
+					//after website update TenMicrometerPerDay is depricated
+					//airQuality.setParticleTenMicrometerPerDay(tdStation.get(6).text().equals("") || tdStation.get(6).text().equals("X") ? null : Float.valueOf(tdStation.get(6).text()));
+					airQuality.setParticleTenMicrometerPerHour(tdStation.get(6).text().equals("") || tdStation.get(6).text().equals("X") ? null : Float.valueOf(tdStation.get(6).text()));
+					airQuality.setParticleTwoAndAHalfMicrometerPerDay(tdStation.get(7).text().equals("") || tdStation.get(7).text().equals("X") ? null : Float.valueOf(tdStation.get(7).text()));
+					airQuality.setCarbonOxide(tdStation.get(8).text().equals("") || tdStation.get(8).text().equals("X") ? null : Float.valueOf(tdStation.get(8).text()));
+					airQuality.setOzon(tdStation.get(9).text().equals("") || tdStation.get(9).text().equals("X") ? null : Float.valueOf(tdStation.get(9).text()));
+					airQuality.setBenzen(tdStation.get(10).text().equals("") || tdStation.get(10).text().equals("X") ? null : Float.valueOf(tdStation.get(10).text()));
+					airQuality.setDd(tdStation.get(11).text().equals("") || tdStation.get(11).text().equals("X") ? null : Float.valueOf(tdStation.get(11).text()));
+					airQuality.setSpeed(tdStation.get(12).text().equals("") || tdStation.get(12).text().equals("X") ? null : Float.valueOf(tdStation.get(12).text()));
+					airQuality.setTemperature(tdStation.get(13).text().equals("") || tdStation.get(13).text().equals("X") ? null : Float.valueOf(tdStation.get(13).text()));
+                    boolean airQualityNull = Stream.of(
+                            airQuality.getSulfurDioxide(),
+                            airQuality.getNitrogenDioxide(),
+                            airQuality.getMonoNitrogenOxides(),
+                            airQuality.getNitrogenOxide(),
+                            airQuality.getParticleTenMicrometerPerDay(),
+                            airQuality.getParticleTenMicrometerPerHour(),
+                            airQuality.getParticleTwoAndAHalfMicrometerPerDay(),
+                            airQuality.getCarbonOxide(),
+                            airQuality.getOzon(),
+                            airQuality.getBenzen(),
+                            airQuality.getDd(),
+                            airQuality.getSpeed(),
+                            airQuality.getTemperature()
+                    ).allMatch(Objects::isNull);
+
+                    if(!airQualityNull) {
+                        airQuality.setTableTime(tableTime);
+                        airQuality.setStation(station);
+                        airQuality.setActive(true);
+                        listOfAirQuality.add(airQuality);
+                    }else{
+						System.out.println("No AirQuality for station " + station.getCity().getCityName() + " " + station.getStationName());
+                    }
 
 				}
 				airQualityRepository.saveAll(listOfAirQuality);
 				airQualityPublisher.publish(listOfAirQuality);
 			}
 		} catch (IOException e) {
+			System.out.println("AirQuality" + LocalDateTime.now());
 			e.printStackTrace();
 		}
 	}
 
 	private void populateStations() {
-		Document doc;
+		Document docStations;
 		try {
-			doc = Jsoup.connect(airQualityURL+"pregledstanica.php").execute().parse();
-			Elements tbodyStationsUrl = doc.select("table").get(0).select("tbody tr").select("a[href]");
+			docStations = Jsoup.connect(airQualityURL+"pregledstanica.php").execute().parse();
+			Elements tbodyStationsUrl = docStations.select("table").get(0).select("tbody tr").select("a[href]");
 
-		//	long val = stationRepository.count();
-		//    if(tbodyStationsUrl.size() != val) {
 				List<Station> stations = (List<Station>) stationRepository.findAll();
 				List<City> cities = (List<City>) cityRepository.findAll();
 				for (Element tdStation : tbodyStationsUrl) {
-
-					doc = Jsoup.connect(airQualityURL + tdStation.attr("href")).execute().parse();
-					Elements tbodyStations = doc.select("table").get(0).select("tbody tr");
+                    Document docii;
+                    docii = Jsoup.connect(airQualityURL + tdStation.attr("href")).execute().parse();
+					Elements tbodyStations = docii.select("table").get(0).select("tbody tr");
 
 					String hcity = tbodyStations.get(1).select("td").get(1).text();
 					String hstationNameTmp = tbodyStations.get(0).select("td").get(1).text().substring(hcity.length()).trim();
 					String eoiCode = tbodyStations.get(4).select("td").get(1).text();
 
-					if(hstationNameTmp.indexOf("-")!= -1){
+					if(hstationNameTmp.contains("-")){
 						hstationNameTmp = hstationNameTmp.substring(0, hstationNameTmp.indexOf("-"));
 					}
 					String hstationName = hstationNameTmp;
@@ -599,7 +660,6 @@ public class HidmetCrawlerService {
 						cities.add(city);
 					}
 					try {
-	//					station = stations.parallelStream().filter(e -> e.getCity().getCityName().equals(hcity) && e.getStationName().equals(hstationName)).findAny().get();
 						station = stations.parallelStream().filter(e -> e.getEoiCode().equals(eoiCode)).findAny().get();
 						//if someone changes name but leaves same eoi code
 						if(!(station.getStationName().equals(hstationName) && station.getCity().getCityName().equals(hcity))){
@@ -624,21 +684,20 @@ public class HidmetCrawlerService {
 			e.printStackTrace();
 		}
 	}
-
+/** unnecesery
 	private void populateDescriptionAndImageForForecast() {
-		Document doc;
+		Document docDescriptions;
 
 			try {
 
 				mvcConfig.descriptionCacheEvict();
 
-				doc = Jsoup.connect(foreacasURL + "prognoza/stanica.php").execute().parse();
-				Elements theadImages = doc.select("div#sadrzaj div table").get(1).select("tbody tr td");
-				//List<Description> imageModelList = new ArrayList<Description>();
+				docDescriptions = Jsoup.connect(foreacasURL + "prognoza/stanica.php").execute().parse();
+				Elements theadImages = docDescriptions.select("div#sadrzaj div table").get(1).select("tbody tr td");
 				List<Description> currentDescriptions = (List<Description>) descriptionRepository.findAll();
 					for(int j=0; j<theadImages.size(); j=j+2) {
 						if (!theadImages.get(j).select("img").attr("src").equals("")) {
-							if (!currentDescriptions.stream().map(Description::getImageLocation).filter(theadImages.get(j).select("img").attr("src")::equals).findFirst().isPresent()) {
+							if (currentDescriptions.stream().map(Description::getImageLocation).noneMatch(theadImages.get(j).select("img").attr("src")::equals)) {
 								Description imageModel = new Description();
 								imageModel.setImageLocation(theadImages.get(j).select("img").attr("src"));
 								imageModel.setDescription(theadImages.get(j).select("img").attr("alt"));
@@ -656,4 +715,5 @@ public class HidmetCrawlerService {
 			
 		
 	}
+ */
 }
