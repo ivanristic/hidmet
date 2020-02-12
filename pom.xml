@@ -25,6 +25,17 @@
 		<version>2.2.4.RELEASE</version>
 	</parent>
 
+	<repositories>
+		<repository>
+			<id>bintray-americanexpress-maven</id>
+			<url>https://dl.bintray.com/americanexpress/maven</url>
+		</repository>
+		<repository>
+			<id>liberty-spring-boot</id>
+			<url>https://public.dhe.ibm.com/ibmdl/export/pub/software/openliberty/runtime/spring-starter-alpha1</url>
+		</repository>
+	</repositories>
+	
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -250,18 +261,6 @@
 				<deploy.dir>deploy/cloud</deploy.dir>
 			</properties>
 		</profile>
-		<profile>
-			<id>aexp</id>
-			<repositories>
-				<repository>
-					<id>bintray-americanexpress-maven</id>
-					<url>https://dl.bintray.com/americanexpress/maven</url>
-				</repository>
-				<repository>
-					<id>liberty-spring-boot</id>
-					<url>https://public.dhe.ibm.com/ibmdl/export/pub/software/openliberty/runtime/spring-starter-alpha1</url>
-				</repository>
-			</repositories>
-		</profile>
+
 	</profiles>
 </project>
