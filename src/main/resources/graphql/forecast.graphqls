@@ -77,17 +77,10 @@ type AirQuality{
     station: Station!
     sulfurDioxide: Float
     nitrogenDioxide: Float
-    monoNitrogenOxides: Float
-    nitrogenOxide: Float
-    particleTenMicrometerPerDay: Float
-    particleTenMicrometerPerHour: Float
-    particleTwoAndAHalfMicrometerPerDay: Float
-    carbonOxide: Float
+    particleTenMicrometer: Float
+    particleTwoAndAHalfMicrometer: Float
+    carbonMonoxide: Float
     ozon: Float
-    benzen: Float
-    dd: Float
-    speed: Float
-    temperature: Float
     tableTime: LocalDateTime
 }
 

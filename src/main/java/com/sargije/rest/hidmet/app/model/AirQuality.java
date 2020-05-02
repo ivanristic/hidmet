@@ -30,38 +30,17 @@ public class AirQuality implements Serializable {
     @Column(name="no2")
     private Float nitrogenDioxide;
 
-    @Column(name="nox")
-    private Float monoNitrogenOxides;
+    @Column(name="pm10")
+    private Float particleTenMicrometer;
 
-    @Column(name="no")
-    private Float nitrogenOxide;
-
-    @Column(name="pm10_24h")
-    private Float particleTenMicrometerPerDay;
-
-    @Column(name="pm10_1h")
-    private Float particleTenMicrometerPerHour;
-
-    @Column(name="pm25_24h")
-    private Float particleTwoAndAHalfMicrometerPerDay;
+    @Column(name="pm2_5")
+    private Float particleTwoAndAHalfMicrometer;
 
     @Column(name="co")
-    private Float carbonOxide;
+    private Float carbonMonoxide;
 
     @Column(name="o3")
     private Float ozon;
-
-    @Column(name="benzen")
-    private Float benzen;
-
-    @Column(name="dd")
-    private Float dd;
-
-    @Column(name="v")
-    private Float speed;
-
-    @Column(name="t")
-    private Float temperature;
 
     @Column(name="table_time")
     private LocalDateTime tableTime;
@@ -101,52 +80,28 @@ public class AirQuality implements Serializable {
         this.nitrogenDioxide = nitrogenDioxide;
     }
 
-    public Float getMonoNitrogenOxides() {
-        return monoNitrogenOxides;
+    public Float getParticleTenMicrometer() {
+        return particleTenMicrometer;
     }
 
-    public void setMonoNitrogenOxides(Float monoNitrogenOxides) {
-        this.monoNitrogenOxides = monoNitrogenOxides;
+    public void setParticleTenMicrometer(Float particleTenMicrometer) {
+        this.particleTenMicrometer = particleTenMicrometer;
     }
 
-    public Float getNitrogenOxide() {
-        return nitrogenOxide;
+    public Float getParticleTwoAndAHalfMicrometer() {
+        return particleTwoAndAHalfMicrometer;
     }
 
-    public void setNitrogenOxide(Float nitrogenOxide) {
-        this.nitrogenOxide = nitrogenOxide;
+    public void setParticleTwoAndAHalfMicrometer(Float particleTwoAndAHalfMicrometer) {
+        this.particleTwoAndAHalfMicrometer = particleTwoAndAHalfMicrometer;
     }
 
-    public Float getParticleTenMicrometerPerDay() {
-        return particleTenMicrometerPerDay;
+    public Float getCarbonMonoxide() {
+        return carbonMonoxide;
     }
 
-    public void setParticleTenMicrometerPerDay(Float particleTenMicrometerPerDay) {
-        this.particleTenMicrometerPerDay = particleTenMicrometerPerDay;
-    }
-
-    public Float getParticleTenMicrometerPerHour() {
-        return particleTenMicrometerPerHour;
-    }
-
-    public void setParticleTenMicrometerPerHour(Float particleTenMicrometerPerHour) {
-        this.particleTenMicrometerPerHour = particleTenMicrometerPerHour;
-    }
-
-    public Float getParticleTwoAndAHalfMicrometerPerDay() {
-        return particleTwoAndAHalfMicrometerPerDay;
-    }
-
-    public void setParticleTwoAndAHalfMicrometerPerDay(Float particleTwoAndAHalfMicrometerPerDay) {
-        this.particleTwoAndAHalfMicrometerPerDay = particleTwoAndAHalfMicrometerPerDay;
-    }
-
-    public Float getCarbonOxide() {
-        return carbonOxide;
-    }
-
-    public void setCarbonOxide(Float carbonOxide) {
-        this.carbonOxide = carbonOxide;
+    public void setCarbonMonoxide(Float carbonMonoxide) {
+        this.carbonMonoxide = carbonMonoxide;
     }
 
     public Float getOzon() {
@@ -157,38 +112,6 @@ public class AirQuality implements Serializable {
         this.ozon = ozon;
     }
 
-    public Float getBenzen() {
-        return benzen;
-    }
-
-    public void setBenzen(Float benzen) {
-        this.benzen = benzen;
-    }
-
-    public Float getDd() {
-        return dd;
-    }
-
-    public void setDd(Float dd) {
-        this.dd = dd;
-    }
-
-    public Float getSpeed() {
-        return speed;
-    }
-
-    public void setSpeed(Float speed) {
-        this.speed = speed;
-    }
-
-    public Float getTemperature() {
-        return temperature;
-    }
-
-    public void setTemperature(Float temperature) {
-        this.temperature = temperature;
-    }
-
     public LocalDateTime getTableTime() {
         return tableTime;
     }
@@ -197,13 +120,11 @@ public class AirQuality implements Serializable {
         this.tableTime = tableTime;
     }
 
-
-    public boolean getActive() {
+    public boolean isActive() {
         return active;
     }
 
     public void setActive(boolean active) {
         this.active = active;
     }
-
 }

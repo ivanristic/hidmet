@@ -24,6 +24,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 
@@ -82,9 +83,9 @@ public class HidmetCrawlerService {
 	//private final String cronShortermForecast = "0 0/15 4-13 * * *";
 
 	private final String cronFivedayForecast = "0 0/10 * * * *";
-    private final String cronCurrentForecast = "0 0/3 * * * *";
+    private final String cronCurrentForecast = "0 0/1 * * * *";
 	private final String cronShortermForecast = "0 0/10 * * * *";
-	private final String cronAirQuality = "0 0/10 * * * *";
+	private final String cronAirQuality = "0 0/1 * * * *";
 
 	@Scheduled(cron = cronFivedayForecast)
 	private void populateFivedayForecast() {
@@ -273,6 +274,7 @@ public class HidmetCrawlerService {
 				docCurrentForecast.outputSettings().escapeMode(Entities.EscapeMode.xhtml);
 				//getting rows of interest
 				Elements tbodyRows = docCurrentForecast.select("table tbody").get(0).select("tr");
+                List<String> theadFields = docCurrentForecast.select("table").get(0).select("thead tr th").eachText();
 				//getting date and formating
 				LocalDateTime tableTime = LocalDateTime.parse(docCurrentForecast.select("table tfoot tr td").get(0).text().substring(22, 38), dtFormatterCurrentForecast);
 
@@ -295,7 +297,8 @@ public class HidmetCrawlerService {
 
 						Elements tdRows = tbodyRow.select("tr").select("td");
 						//getting City and cleaning data
-						String hcity = tdRows.get(0).text().replaceAll("&nbsp; ", "");
+						String hcity = tdRows.get(theadFields.indexOf("Stanica")).text().replaceAll("&nbsp; ", "");
+
 						City city = null;
 						Description description = null;
 
@@ -310,17 +313,18 @@ public class HidmetCrawlerService {
 							//cities = (List<City>) cityRepository.findAll();
 						}
 						// if there is all data in row (avoiding jsoup bug)
+
 						if (tdRows.size() == 9) {
 							CurrentForecast currentForecastModel = new CurrentForecast();
 							currentForecastModel.setCity(city);
 							// getting values from html fields
-							currentForecastModel.setTemperature(new Integer(tdRows.get(1).text().replaceAll("[^\\d]", "")));//.trim().replaceAll("&nbsp; ", "")));
-							currentForecastModel.setPressure(new Float(tdRows.get(2).text().replaceAll("[^\\d.]", "")));//.trim().replaceAll("&nbsp; ", "")));
-							currentForecastModel.setWindDirection(tdRows.get(3).text().trim().replaceAll("&nbsp; ", ""));
-							currentForecastModel.setWindSpeed(tdRows.get(4).text().trim().replaceAll("&nbsp; ", ""));
-							currentForecastModel.setHumidity(new Integer(tdRows.get(5).text().replaceAll("[^\\d]", "")));//.trim().replaceAll("&nbsp; ", "")));
-							currentForecastModel.setFeelsLike(new Integer(tdRows.get(6).text().replaceAll("[^\\d]", "")));//.trim().replaceAll("&nbsp; ", "")));
-							String img = tdRows.get(7).select("img").attr("src");
+							currentForecastModel.setTemperature(new Integer(tdRows.get(theadFields.indexOf("Temperatura (°C)")).text().replaceAll("[^\\d]", "")));//.trim().replaceAll("&nbsp; ", "")));
+							currentForecastModel.setPressure(new Float(tdRows.get(theadFields.indexOf("Pritisak (hPa)")).text().replaceAll("[^\\d.]", "")));//.trim().replaceAll("&nbsp; ", "")));
+							currentForecastModel.setWindDirection(tdRows.get(theadFields.indexOf("Pravac vetra")).text().trim().replaceAll("&nbsp; ", ""));
+							currentForecastModel.setWindSpeed(tdRows.get(theadFields.indexOf("Brzina vetra (m/s)")).text().trim().replaceAll("&nbsp; ", ""));
+							currentForecastModel.setHumidity(new Integer(tdRows.get(theadFields.indexOf("Vlažnost (%)")).text().replaceAll("[^\\d]", "")));//.trim().replaceAll("&nbsp; ", "")));
+							currentForecastModel.setFeelsLike(new Integer(tdRows.get(theadFields.indexOf("Subjektivni osećaj temperature (°C)")).text().replaceAll("[^\\d]", "")));//.trim().replaceAll("&nbsp; ", "")));
+							String img = tdRows.get(theadFields.indexOf("Simbol")).select("img").attr("src");
 							// getting description and if doesn't exist create one with value from field
 							try {
 								description = descriptions.stream().filter(p -> p.getImageLocation().equals(img)).findFirst().get();
@@ -328,6 +332,7 @@ public class HidmetCrawlerService {
 							} catch (NoSuchElementException e) {
 								Description descriptionModel = new Description();
 								descriptionModel.setImageLocation(img);
+                                descriptionModel.setDescription(tdRows.get(theadFields.indexOf("Opis vremena")).text().replaceAll("[^\\d]", ""));
 								descriptionRepository.save(descriptionModel);
 								description = descriptionModel;
 								descriptions.add(description);
@@ -523,109 +528,107 @@ public class HidmetCrawlerService {
 	}
 	@Scheduled(cron = cronAirQuality)
 	private void populateAirQuality() {
-
+       Pattern pattern = Pattern.compile("-?\\d+(\\.\\d+)?");
 		Document docAirQuality;
 		Station station = null;
 		DateTimeFormatter dateTimeFormatterAirQuality = DateTimeFormatter.ofPattern("dd.MM.yyyy. HH:mm");
 
 		try {
 
-			docAirQuality = Jsoup.connect(airQualityURL + "stanicepodaci.php").execute().parse();
-			Elements tbodyStations = docAirQuality.select("table").get(0).select("tbody tr");
-			String time = docAirQuality.select("body > div.admin-wrapper > div.admin-content > div > div.admin-content-header > div > div > div").select("a[href]").get(0).text().substring(21);
-			LocalDateTime tableTime = LocalDateTime.parse(time, dateTimeFormatterAirQuality);
-			//boolean isTableTime = airQualityRepository.existsByActiveAndTableTime(true, tableTime);
-			if (!airQualityRepository.existsByActiveAndTableTime(true, tableTime)) {
-				logger.info("Air quality populating data " + LocalDateTime.now());
-			  //  populateStations();
+            docAirQuality = Jsoup.connect(airQualityURL + "stanicepodaci.php").execute().parse();
+            Elements tbodyStations = docAirQuality.select("table").get(0).select("tbody tr");
+            List<String> theadFields = docAirQuality.select("table").get(0).select("thead tr th").eachText();
 
-				List<Station> stations = (List<Station>) stationRepository.findAll();
-				airQualityRepository.updateAirQualitySetActiveToFalse();
-				List<AirQuality> listOfAirQuality = new ArrayList<AirQuality>();
-				for (Element trStation : tbodyStations) {
-					Elements tdStation = trStation.select("td");
-					try {
-						station = stations.parallelStream().filter(x -> {
-							if (x.getStationName().equals("")) {
-								if(tdStation.get(0).text().contains("-")){
-									if (x.getCity().getCityName().equals(tdStation.get(0).text().substring(0, tdStation.get(0).text().indexOf("-")))) {
-										return true;
-									}
-								}else{
-									if (x.getCity().getCityName().equals(tdStation.get(0).text())) {
-										return true;
-									}
-								}
-							} else {
-								if(tdStation.get(0).text().contains("-"))
-								{
-									if ((x.getCity().getCityName() + ' ' + x.getStationName()).equals(tdStation.get(0).text().substring(0, tdStation.get(0).text().indexOf("-")))) {
-										return true;
-									}
-								}else{
-									if ((x.getCity().getCityName() + ' ' + x.getStationName()).equals(tdStation.get(0).text())) {
-										return true;
-									}
-								}
-							}
-							return false;
-						}).findAny().get();
+                String time = docAirQuality.select("body > div.admin-wrapper > div.admin-content > div > div.admin-content-header > div > div > div").select("a[href]").get(0).text().substring(21);
+                LocalDateTime tableTime = LocalDateTime.parse(time, dateTimeFormatterAirQuality);
+                //boolean isTableTime = airQualityRepository.existsByActiveAndTableTime(true, tableTime);
+                if (!airQualityRepository.existsByActiveAndTableTime(true, tableTime)) {
+                    logger.info("Air quality populating data " + LocalDateTime.now());
+                    //  populateStations();
+
+                    List<Station> stations = (List<Station>) stationRepository.findAll();
+                    airQualityRepository.updateAirQualitySetActiveToFalse();
+                    List<AirQuality> listOfAirQuality = new ArrayList<AirQuality>();
+                    for (Element trStation : tbodyStations) {
+                        Elements tdStation = trStation.select("td");
+                        try {
+                            station = stations.parallelStream().filter(x -> {
+                                if (x.getStationName().equals("")) {
+                                    if (tdStation.get(0).text().contains("-")) {
+                                        if (x.getCity().getCityName().equals(tdStation.get(0).text().substring(0, tdStation.get(0).text().indexOf("-")))) {
+                                            return true;
+                                        }
+                                    } else {
+                                        if (x.getCity().getCityName().equals(tdStation.get(0).text())) {
+                                            return true;
+                                        }
+                                    }
+                                } else {
+                                    if (tdStation.get(0).text().contains("-")) {
+                                        if ((x.getCity().getCityName() + ' ' + x.getStationName()).equals(tdStation.get(0).text().substring(0, tdStation.get(0).text().indexOf("-")))) {
+                                            return true;
+                                        }
+                                    } else {
+                                        if ((x.getCity().getCityName() + ' ' + x.getStationName()).equals(tdStation.get(0).text())) {
+                                            return true;
+                                        }
+                                    }
+                                }
+                                return false;
+                            }).findAny().get();
 
 
-					} catch (NoSuchElementException ne) {
-						System.out.println(tdStation.get(0).text());
-						populateStations();
-						ne.printStackTrace();
-					}
-					AirQuality airQuality = new AirQuality();
+                        } catch (NoSuchElementException ne) {
+                            System.out.println(tdStation.get(0).text());
+                            populateStations();
+                            ne.printStackTrace();
+                        }
+                        AirQuality airQuality = new AirQuality();
+                        //pattern.matcher(strNum).matches()
 
-					airQuality.setSulfurDioxide(tdStation.get(2).text().equals("") || tdStation.get(2).text().equals("X") ? null : Float.valueOf(tdStation.get(2).text()));
-					airQuality.setNitrogenDioxide(tdStation.get(3).text().equals("") || tdStation.get(3).text().equals("X") ? null : Float.valueOf(tdStation.get(3).text()));
-					airQuality.setMonoNitrogenOxides(tdStation.get(4).text().equals("") || tdStation.get(4).text().equals("X") ? null : Float.valueOf(tdStation.get(4).text()));
-					airQuality.setNitrogenOxide(tdStation.get(5).text().equals("") || tdStation.get(5).text().equals("X") ? null : Float.valueOf(tdStation.get(5).text()));
-					//after website update TenMicrometerPerDay is depricated
-					//airQuality.setParticleTenMicrometerPerDay(tdStation.get(6).text().equals("") || tdStation.get(6).text().equals("X") ? null : Float.valueOf(tdStation.get(6).text()));
-					airQuality.setParticleTenMicrometerPerHour(tdStation.get(6).text().equals("") || tdStation.get(6).text().equals("X") ? null : Float.valueOf(tdStation.get(6).text()));
-					airQuality.setParticleTwoAndAHalfMicrometerPerDay(tdStation.get(7).text().equals("") || tdStation.get(7).text().equals("X") ? null : Float.valueOf(tdStation.get(7).text()));
-					airQuality.setCarbonOxide(tdStation.get(8).text().equals("") || tdStation.get(8).text().equals("X") ? null : Float.valueOf(tdStation.get(8).text()));
-					airQuality.setOzon(tdStation.get(9).text().equals("") || tdStation.get(9).text().equals("X") ? null : Float.valueOf(tdStation.get(9).text()));
-					airQuality.setBenzen(tdStation.get(10).text().equals("") || tdStation.get(10).text().equals("X") ? null : Float.valueOf(tdStation.get(10).text()));
-					airQuality.setDd(tdStation.get(11).text().equals("") || tdStation.get(11).text().equals("X") ? null : Float.valueOf(tdStation.get(11).text()));
-					airQuality.setSpeed(tdStation.get(12).text().equals("") || tdStation.get(12).text().equals("X") ? null : Float.valueOf(tdStation.get(12).text()));
-					airQuality.setTemperature(tdStation.get(13).text().equals("") || tdStation.get(13).text().equals("X") ? null : Float.valueOf(tdStation.get(13).text()));
-                    boolean airQualityNull = Stream.of(
-                            airQuality.getSulfurDioxide(),
-                            airQuality.getNitrogenDioxide(),
-                            airQuality.getMonoNitrogenOxides(),
-                            airQuality.getNitrogenOxide(),
-                            airQuality.getParticleTenMicrometerPerDay(),
-                            airQuality.getParticleTenMicrometerPerHour(),
-                            airQuality.getParticleTwoAndAHalfMicrometerPerDay(),
-                            airQuality.getCarbonOxide(),
-                            airQuality.getOzon(),
-                            airQuality.getBenzen(),
-                            airQuality.getDd(),
-                            airQuality.getSpeed(),
-                            airQuality.getTemperature()
-                    ).allMatch(Objects::isNull);
+                        airQuality.setSulfurDioxide(!pattern.matcher(tdStation.get(theadFields.indexOf("SO2")).text()).matches() ? null : Float.valueOf(tdStation.get(theadFields.indexOf("SO2")).text()));
+                        //airQuality.setSulfurDioxide(tdStation.get(2).text().equals("") || tdStation.get(2).text().equals("X") || tdStation.get(2).text().equals("N/A") ? null : Float.valueOf(tdStation.get(2).text()));
+                        airQuality.setNitrogenDioxide(!pattern.matcher(tdStation.get(theadFields.indexOf("NO2")).text()).matches() ? null : Float.valueOf(tdStation.get(theadFields.indexOf("NO2")).text()));
+                        //airQuality.setMonoNitrogenOxides(tdStation.get(4).text().equals("") || tdStation.get(4).text().equals("X") ? null : Float.valueOf(tdStation.get(4).text()));
+                        //airQuality.setNitrogenOxide(tdStation.get(4).text().equals("") || tdStation.get(4).text().equals("X") ? null : Float.valueOf(tdStation.get(4).text()));
+                        //after website update TenMicrometerPerDay is depricated
+                        //airQuality.setParticleTenMicrometerPerDay(tdStation.get(6).text().equals("") || tdStation.get(6).text().equals("X") ? null : Float.valueOf(tdStation.get(6).text()));
+                        airQuality.setParticleTenMicrometer(!pattern.matcher(tdStation.get(theadFields.indexOf("PM10")).text()).matches() ? null : Float.valueOf(tdStation.get(theadFields.indexOf("PM10")).text()));
+                        airQuality.setParticleTwoAndAHalfMicrometer(!pattern.matcher(tdStation.get(theadFields.indexOf("PM2.5")).text()).matches() ? null : Float.valueOf(tdStation.get(theadFields.indexOf("PM2.5")).text()));
+                        airQuality.setCarbonMonoxide(!pattern.matcher(tdStation.get(theadFields.indexOf("CO")).text()).matches() ? null : Float.valueOf(tdStation.get(theadFields.indexOf("CO")).text()));
+                        airQuality.setOzon(!pattern.matcher(tdStation.get(theadFields.indexOf("O3")).text()).matches() ? null : Float.valueOf(tdStation.get(theadFields.indexOf("O3")).text()));
+                        //airQuality.setBenzen(tdStation.get(10).text().equals("") || tdStation.get(10).text().equals("X") ? null : Float.valueOf(tdStation.get(10).text()));
+                        //airQuality.setDd(tdStation.get(11).text().equals("") || tdStation.get(11).text().equals("X") ? null : Float.valueOf(tdStation.get(11).text()));
+                        //airQuality.setSpeed(tdStation.get(12).text().equals("") || tdStation.get(12).text().equals("X") ? null : Float.valueOf(tdStation.get(12).text()));
+                        //airQuality.setTemperature(tdStation.get(13).text().equals("") || tdStation.get(13).text().equals("X") ? null : Float.valueOf(tdStation.get(13).text()));
+                        boolean airQualityNull = Stream.of(
+                                airQuality.getSulfurDioxide(),
+                                airQuality.getNitrogenDioxide(),
+                                airQuality.getOzon(),
+                                airQuality.getCarbonMonoxide(),
+                                airQuality.getParticleTenMicrometer(),
+                                airQuality.getParticleTwoAndAHalfMicrometer()
+                        ).allMatch(Objects::isNull);
 
-                    if(!airQualityNull) {
-                        airQuality.setTableTime(tableTime);
-                        airQuality.setStation(station);
-                        airQuality.setActive(true);
-                        listOfAirQuality.add(airQuality);
-                    }else{
-						System.out.println("No AirQuality for station " + station.getCity().getCityName() + " " + station.getStationName());
+                        if (!airQualityNull) {
+                            airQuality.setTableTime(tableTime);
+                            airQuality.setStation(station);
+                            airQuality.setActive(true);
+                            listOfAirQuality.add(airQuality);
+                        } else {
+                            System.out.println("No AirQuality for station " + station.getCity().getCityName() + " " + station.getStationName());
+                        }
+
                     }
+                    airQualityRepository.saveAll(listOfAirQuality);
+                    airQualityPublisher.publish(listOfAirQuality);
+                }
 
-				}
-				airQualityRepository.saveAll(listOfAirQuality);
-				airQualityPublisher.publish(listOfAirQuality);
-			}
-		} catch (IOException e) {
-			System.out.println("AirQuality" + LocalDateTime.now());
-			e.printStackTrace();
-		}
+            } catch(IOException e){
+                System.out.println("AirQuality" + LocalDateTime.now());
+                e.printStackTrace();
+            }
+
 	}
 
 	private void populateStations() {
