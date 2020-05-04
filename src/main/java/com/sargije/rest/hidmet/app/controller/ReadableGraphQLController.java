@@ -5,6 +5,7 @@ import com.sargije.rest.hidmet.app.model.City;
 import com.sargije.rest.hidmet.app.model.ForecastType;
 import io.aexp.nodes.graphql.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,6 +22,8 @@ public class ReadableGraphQLController {
     @Autowired
     public GraphQLTemplate graphQLTemplate;
 
+    @Value("${hidmet.restapi.url}")
+    String graphqlUrl;
 
     @RequestMapping("/fiveday")
     public String getGraphQLFiveday(Model model) throws MalformedURLException {
@@ -28,7 +31,7 @@ public class ReadableGraphQLController {
         headers.put("Authorization", "Basic aXZhbjoxMjM0NTY=");
 
 		GraphQLRequestEntity requestEntity = GraphQLRequestEntity.Builder()
-				.url("http://localhost:8080/graphql")
+				.url(graphqlUrl + "/graphql")
                 .headers(headers)
 				.request(FivedayForecastRequest.class)
 				.build();
@@ -45,7 +48,7 @@ public class ReadableGraphQLController {
         headers.put("Authorization", "Basic aXZhbjoxMjM0NTY=");
 
         GraphQLRequestEntity requestEntity = GraphQLRequestEntity.Builder()
-                .url("http://localhost:8080/graphql")
+                .url(graphqlUrl + "/graphql")
                 .headers(headers)
                 .request(CurrentForecastRequest.class)
                 .build();
@@ -62,7 +65,7 @@ public class ReadableGraphQLController {
         headers.put("Authorization", "Basic aXZhbjoxMjM0NTY=");
 
         GraphQLRequestEntity requestEntity = GraphQLRequestEntity.Builder()
-                .url("http://localhost:8080/graphql")
+                .url(graphqlUrl + "/graphql")
                 .headers(headers)
                 .request(ShortTermForecastRequest.class)
                 .build();
@@ -79,13 +82,13 @@ public class ReadableGraphQLController {
         headers.put("Authorization", "Basic aXZhbjoxMjM0NTY=");
 
         GraphQLRequestEntity airQualityRequestEntity = GraphQLRequestEntity.Builder()
-                .url("http://localhost:8080/graphql")
+                .url(graphqlUrl + "/graphql")
                 .headers(headers)
                 .request(AirQualityRequest.class)
                 .build();
 
         GraphQLRequestEntity stationRequestEntity = GraphQLRequestEntity.Builder()
-                .url("http://localhost:8080/graphql")
+                .url(graphqlUrl + "/graphql")
                 .headers(headers)
                 .request(StationRequest.class)
                 .build();
@@ -101,7 +104,7 @@ public class ReadableGraphQLController {
         Map<String, String> headers = new HashMap<String, String>();
         headers.put("Authorization", "Basic aXZhbjoxMjM0NTY=");
         GraphQLRequestEntity requestEntity = GraphQLRequestEntity.Builder()
-                .url("http://localhost:8080/graphql")
+                .url(graphqlUrl + "/graphql")
                 .headers(headers)
                 .request(CityRequest.class)
                 .arguments(new Arguments("getAllCities", new Argument("forecastType", ft)))

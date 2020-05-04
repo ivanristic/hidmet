@@ -2,6 +2,7 @@ package com.sargije.rest.hidmet.app.controller;
 
 import com.sargije.rest.hidmet.app.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,16 +20,19 @@ public class ReadableController {
 	@Autowired
 	RestTemplate restTemplate;
 
+	@Value("${hidmet.restapi.url}")
+	String restApiUrl;
+
 	@GetMapping(value = "/fiveday")
 	public String getFiveDayForecast(Model model){
 
-		ResponseEntity<FivedayForecast[]> fivedayForecast = restTemplate.getForEntity("http://localhost:8080/api/v1/fiveday", FivedayForecast[].class);
-		//ResponseEntity<City[]> city = restTemplate.getForEntity("http://localhost:8080/rest/city/fiveday", City[].class);
+		ResponseEntity<FivedayForecast[]> fivedayForecast = restTemplate.getForEntity(restApiUrl + "/api/v1/fiveday", FivedayForecast[].class);
+		//ResponseEntity<City[]> city = restTemplate.getForEntity(restApiUrl + "/rest/city/fiveday", City[].class);
 		//using exchange
 		HttpHeaders headers = new HttpHeaders();
 		headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
 		HttpEntity<City[]> citiesEntity = new HttpEntity<City[]>(headers);
-		City[] city = restTemplate.exchange("http://localhost:8080/api/v1/city/fiveday", HttpMethod.GET, citiesEntity, City[].class).getBody();
+		City[] city = restTemplate.exchange(restApiUrl + "/api/v1/city/fiveday", HttpMethod.GET, citiesEntity, City[].class).getBody();
 
 		model.addAttribute("listFiveDayForecast", fivedayForecast.getBody());
 		model.addAttribute("cityList", city);
@@ -38,8 +42,8 @@ public class ReadableController {
 	@GetMapping(value = "/current")
 	public String getCurrentForecast(Model model){
 
-		ResponseEntity<CurrentForecast[]> currentForecast = restTemplate.getForEntity("http://localhost:8080/api/v1/current", CurrentForecast[].class);
-		ResponseEntity<City[]> city = restTemplate.getForEntity("http://localhost:8080/api/v1/city/current", City[].class);
+		ResponseEntity<CurrentForecast[]> currentForecast = restTemplate.getForEntity(restApiUrl + "/api/v1/current", CurrentForecast[].class);
+		ResponseEntity<City[]> city = restTemplate.getForEntity(restApiUrl + "/api/v1/city/current", City[].class);
 		model.addAttribute("listCurrentForecast", currentForecast.getBody());
 		model.addAttribute("cityList", city.getBody());
 		return "current";
@@ -48,8 +52,8 @@ public class ReadableController {
 	@GetMapping(value = "/shorterm")
 	public String getShorttermForecast(Model model){
 
-		ResponseEntity<ShortTermForecast[]> shortTermForecast = restTemplate.getForEntity("http://localhost:8080/api/v1/shortterm", ShortTermForecast[].class);
-		ResponseEntity<City[]> city = restTemplate.getForEntity("http://localhost:8080/api/v1/city/shortterm", City[].class);
+		ResponseEntity<ShortTermForecast[]> shortTermForecast = restTemplate.getForEntity(restApiUrl + "/api/v1/shortterm", ShortTermForecast[].class);
+		ResponseEntity<City[]> city = restTemplate.getForEntity(restApiUrl + "/api/v1/city/shortterm", City[].class);
 		model.addAttribute("listShortTermForecast", shortTermForecast.getBody());
 		model.addAttribute("cityList", city.getBody());
 		return "shortterm";
@@ -58,8 +62,8 @@ public class ReadableController {
 	@GetMapping(value = "/airquality")
 	public String getAirQuality(Model model){
 
-		ResponseEntity<AirQuality[]> airQuality = restTemplate.getForEntity("http://localhost:8080/api/v1/airquality", AirQuality[].class);
-		ResponseEntity<Station[]> stations = restTemplate.getForEntity("http://localhost:8080/api/v1/station/airquality", Station[].class);
+		ResponseEntity<AirQuality[]> airQuality = restTemplate.getForEntity(restApiUrl + "/api/v1/airquality", AirQuality[].class);
+		ResponseEntity<Station[]> stations = restTemplate.getForEntity(restApiUrl + "/api/v1/station/airquality", Station[].class);
 		model.addAttribute("listAirQuality", airQuality.getBody());
 		model.addAttribute("stationList", stations.getBody());
 		return "airquality";
@@ -78,7 +82,7 @@ public class ReadableController {
 			return null;
 		}
 		*/
-		ResponseEntity<User> users = restTemplate.postForEntity("http://localhost:8080/api/v1/user", user, User.class);
+		ResponseEntity<User> users = restTemplate.postForEntity(restApiUrl + "/api/v1/user", user, User.class);
 		if(users.getStatusCode().equals(HttpStatus.OK)){
 			model.addAttribute("status", "User has been created successfully");
 		} else {
