@@ -16,36 +16,36 @@
 					<th>Stanica</th>
 					<th>SO2</th>
 					<th>NO2</th>
-					<th>NOX</th>
-					<th>NO</th>
-					<th>PM 10 um/24h</th>
-					<th>PM 10 um/1h</th>
-					<th>PM 2.5 um/24h</th>
+					<!--<th>NOX</th>
+					<th>NO</th>-->
+					<th>PM 10 </th>
+					<th>PM 2.5</th>
+					<!--<th>PM 2.5 um/24h</th>-->
 					<th>CO</th>
 					<th>O3</th>
-					<th>Benzen</th>
+					<!--<th>Benzen</th>
 					<th>dd</th>
 					<th>Vetar</th>
-					<th>Temperatura</th>
+					<th>Temperatura</th>-->
 				</thead>
 
 				<th:block th:each="fo, foStat : ${listAirQuality}">
 					<tr>
-						<td th:text="${fo.station.city.cityName}"></td>
-						<td th:text="${fo.station.stationName}"></td>
-						<td th:text="${fo.sulfurDioxide}"></td>
-						<td th:text="${fo.nitrogenDioxide}"></td>
-						<td th:text="${fo.monoNitrogenOxides}"></td>
-						<td th:text="${fo.nitrogenOxide}"></td>
-						<td th:text="${fo.particleTenMicrometerPerDay}"></td>
-						<td th:text="${fo.particleTenMicrometerPerHour}"></td>
-						<td th:text="${fo.particleTwoAndAHalfMicrometerPerDay}"></td>
-						<td th:text="${fo.carbonOxide}"></td>
-						<td th:text="${fo.ozon}"></td>
-						<td th:text="${fo.benzen}"></td>
+							<td th:text="${fo.station.city.cityName}"></td>
+							<td th:text="${fo.station.stationName}"></td>
+							<td th:text="${fo.sulfurDioxide}"></td>
+							<td th:text="${fo.nitrogenDioxide}"></td>
+					<!--	<td th:text="${fo.monoNitrogenOxides}"></td>
+						<td th:text="${fo.nitrogenOxide}"></td>-->
+							<td th:text="${fo.particleTenMicrometer}"></td>
+							<td th:text="${fo.particleTwoAndAHalfMicrometer}"></td>
+						<!--<td th:text="${fo.particleTwoAndAHalfMicrometerPerDay}"></td>-->
+							<td th:text="${fo.carbonMonoxide}"></td>
+							<td th:text="${fo.ozon}"></td>
+						<!--<td th:text="${fo.benzen}"></td>
 						<td th:text="${fo.dd}"></td>
 						<td th:text="${fo.speed}"></td>
-						<td th:text="${fo.temperature}"></td>
+						<td th:text="${fo.temperature}"></td>-->
 					</tr>
 				</th:block>
 				</tbody>
