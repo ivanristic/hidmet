@@ -2,13 +2,12 @@ package com.sargije.rest.hidmet.app.interceptors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-@Component
+//@Component
 public class CustomRequestLoggingInterceptor extends HandlerInterceptorAdapter {
     Logger logger = LoggerFactory.getLogger(CustomRequestLoggingInterceptor.class);
     @Override
