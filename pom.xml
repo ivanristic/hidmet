@@ -6,7 +6,7 @@
 
 	<groupId>com.sargije.rest.hidmet</groupId>
 	<artifactId>hidmetrest</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0.0-RELEASE</version>
     
 	<properties>
 		<java.version>1.8</java.version>
@@ -234,7 +234,7 @@
 		<profile>
 			<id>openshift</id>
 			<activation>
-				<activeByDefault>true</activeByDefault>
+				<activeByDefault>false</activeByDefault>
 				<property>
 					<name>serverName</name>
 					<value>openshift</value>
@@ -255,6 +255,19 @@
 			</activation>
 			<properties>
 				<deploy.dir>deploy/cloud</deploy.dir>
+			</properties>
+		</profile>
+		<profile>
+			<id>pi</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+				<property>
+					<name>serverName</name>
+					<value>pi</value>
+				</property>
+			</activation>
+			<properties>
+				<deploy.dir>deploy/pi</deploy.dir>
 			</properties>
 		</profile>
 
