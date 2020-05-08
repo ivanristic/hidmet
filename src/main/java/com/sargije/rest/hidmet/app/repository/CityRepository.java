@@ -16,4 +16,6 @@ public interface CityRepository extends CrudRepository<City, Long>{
 	@Cacheable("shortTermForecastsCities")
 	List<City> findDistinctByShortTermForecastsNotNull();
 
+    City findCityByCityName(String cityName);
+
 }

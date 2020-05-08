@@ -1,11 +1,13 @@
 package com.sargije.rest.hidmet.app.controller;
 
 import com.sargije.rest.hidmet.app.model.*;
+import com.sargije.rest.hidmet.app.repository.CityRepository;
 import com.sargije.rest.hidmet.app.services.HidmetDataService;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -23,6 +25,9 @@ public class WeatherForecastController {
 	
 	@Autowired
 	HidmetDataService hidmetDataService;
+
+	@Autowired
+	CityRepository cityRepository;
 	
 	@GetMapping(value = "/current")
 	public List<CurrentForecast> showCurrentForecast(){
@@ -49,24 +54,12 @@ public class WeatherForecastController {
 	    return hidmetDataService.getAirQuality();
     }
 
-	@GetMapping(value = "/city/current")
-	public List<City> showCityForCurrentForecasts(){
 
-		return hidmetDataService.getCityForCurrentForecasts();
+	@GetMapping(value = "current/active/{cityName}")
+	public CurrentForecast showCurrentForecastByCityName (@PathVariable String  cityName){
+		City city = cityRepository.findCityByCityName(cityName);
 
-	}
-
-	@GetMapping(value = "/city/fiveday")
-	public List<City> showCityForFivedayForecast(){
-
-		return hidmetDataService.getCityForFivedayForecast();
-
-	}
-
-	@GetMapping(value = "/city/shortterm")
-	public List<City> showCityForShortTermForecast(){
-
-		return hidmetDataService.getCityForShortTermForecast();
+		return hidmetDataService.getCurrentForecastByCityAndActive(city, true);
 	}
 
 	@GetMapping(value = "/station/airquality")
@@ -74,5 +67,4 @@ public class WeatherForecastController {
 
 		return hidmetDataService.getStationsForAirQuality();
 	}
-
 }

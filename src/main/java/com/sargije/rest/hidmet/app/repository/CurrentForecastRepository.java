@@ -1,5 +1,6 @@
 package com.sargije.rest.hidmet.app.repository;
 
+import com.sargije.rest.hidmet.app.model.City;
 import com.sargije.rest.hidmet.app.model.CurrentForecast;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.repository.Modifying;
@@ -22,5 +23,5 @@ public interface CurrentForecastRepository extends CrudRepository<CurrentForecas
 	@Query("update CurrentForecast cf set cf.active = 0 where cf.active = 1")
 	void updateCurrentForecastActiveToFalse();
 
-
+    CurrentForecast findCurrentForecastByCityAndActive(City city, boolean active);
 }

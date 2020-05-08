@@ -30,22 +30,22 @@ public class City implements Serializable {
 
 	//bi-directional many-to-one association to CurrentForecast
 	@GraphQLIgnore
-	@OneToMany(mappedBy="city")
+	@OneToMany(mappedBy="city", fetch = FetchType.LAZY)
 	private Set<CurrentForecast> currentForecasts;
 
 	//bi-directional many-to-one association to FivedayForecast
 	@GraphQLIgnore
-	@OneToMany(mappedBy="city")
+	@OneToMany(mappedBy="city", fetch = FetchType.LAZY)
 	private Set<FivedayForecast> fivedayForecasts;
 
 	//bi-directional many-to-one association to ShortTermForecast
 	@GraphQLIgnore
-	@OneToMany(mappedBy="city")
+	@OneToMany(mappedBy="city", fetch = FetchType.LAZY)
 	private Set<ShortTermForecast> shortTermForecasts;
 
 	//bi-directional many-to-one association to ShortTermForecast
 	@GraphQLIgnore
-	@OneToMany(mappedBy="city")
+	@OneToMany(mappedBy="city", fetch = FetchType.LAZY)
 	private Set<Station> station;
 
 

@@ -32,7 +32,7 @@ public class ReadableController {
 		HttpHeaders headers = new HttpHeaders();
 		headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
 		HttpEntity<City[]> citiesEntity = new HttpEntity<City[]>(headers);
-		City[] city = restTemplate.exchange(restApiUrl + "/api/v1/city/fiveday", HttpMethod.GET, citiesEntity, City[].class).getBody();
+		City[] city = restTemplate.exchange(restApiUrl + "/api/v1/city/forecastType/fiveDay", HttpMethod.GET, citiesEntity, City[].class).getBody();
 
 		model.addAttribute("listFiveDayForecast", fivedayForecast.getBody());
 		model.addAttribute("cityList", city);
@@ -43,7 +43,7 @@ public class ReadableController {
 	public String getCurrentForecast(Model model){
 
 		ResponseEntity<CurrentForecast[]> currentForecast = restTemplate.getForEntity(restApiUrl + "/api/v1/current", CurrentForecast[].class);
-		ResponseEntity<City[]> city = restTemplate.getForEntity(restApiUrl + "/api/v1/city/current", City[].class);
+		ResponseEntity<City[]> city = restTemplate.getForEntity(restApiUrl + "/api/v1/city/forecastType/current", City[].class);
 		model.addAttribute("listCurrentForecast", currentForecast.getBody());
 		model.addAttribute("cityList", city.getBody());
 		return "current";
@@ -53,7 +53,7 @@ public class ReadableController {
 	public String getShorttermForecast(Model model){
 
 		ResponseEntity<ShortTermForecast[]> shortTermForecast = restTemplate.getForEntity(restApiUrl + "/api/v1/shortterm", ShortTermForecast[].class);
-		ResponseEntity<City[]> city = restTemplate.getForEntity(restApiUrl + "/api/v1/city/shortterm", City[].class);
+		ResponseEntity<City[]> city = restTemplate.getForEntity(restApiUrl + "/api/v1/city/forecastType/shortTerm", City[].class);
 		model.addAttribute("listShortTermForecast", shortTermForecast.getBody());
 		model.addAttribute("cityList", city.getBody());
 		return "shortterm";

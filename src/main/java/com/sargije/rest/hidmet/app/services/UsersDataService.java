@@ -1,10 +1,10 @@
 package com.sargije.rest.hidmet.app.services;
 
+import com.sargije.rest.hidmet.app.repository.AuthoritiesRepository;
+import com.sargije.rest.hidmet.app.repository.UsersRepository;
 import com.sargije.rest.hidmet.app.model.Authorities;
 import com.sargije.rest.hidmet.app.model.AuthoritiesId;
 import com.sargije.rest.hidmet.app.model.Users;
-import com.sargije.rest.hidmet.app.repository.AuthoritiesRepository;
-import com.sargije.rest.hidmet.app.repository.UsersRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

@@ -116,9 +116,6 @@ public class HidmetCrawlerService {
 				// getting all the links for forecast
 				Elements links = docFivedayForecastHref.select("div#sadrzaj div").get(0).select("a[href]");
 
-
-
-
 					// cache evict and prepare for fresh data
 					mvcConfig.fivedayForecastCacheEvict();
 

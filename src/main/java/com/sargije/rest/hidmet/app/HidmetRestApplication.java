@@ -19,7 +19,7 @@ public class HidmetRestApplication extends SpringBootServletInitializer  {
 	}
 	 
 	public static void main(String[] args) {
-		SpringApplication.run(HidmetRestApplication.class, args);
+		SpringApplication. run(HidmetRestApplication.class, args);
 	}
 	
 }

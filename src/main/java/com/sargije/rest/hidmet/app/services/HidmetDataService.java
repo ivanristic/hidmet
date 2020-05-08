@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class HidmetDataService {
@@ -61,4 +62,10 @@ public class HidmetDataService {
 	}
 
 	public List<Station> getStationsForAirQuality() { return (List<Station>) stationRepository.findAll();}
+
+	public Optional<City> getCityById(Long id) { return cityRepository.findById(id);	}
+
+    public CurrentForecast getCurrentForecastByCityAndActive(City city, boolean active) {
+		return currentForecastRepository.findCurrentForecastByCityAndActive(city, active);
+    }
 }
