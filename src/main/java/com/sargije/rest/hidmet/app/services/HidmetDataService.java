@@ -65,7 +65,15 @@ public class HidmetDataService {
 
 	public Optional<City> getCityById(Long id) { return cityRepository.findById(id);	}
 
-    public CurrentForecast getCurrentForecastByCityAndActive(City city, boolean active) {
+    public CurrentForecast getCurrentForecastByCityAndActive(Optional<City> city, boolean active) {
 		return currentForecastRepository.findCurrentForecastByCityAndActive(city, active);
     }
+
+    public List<ShortTermForecast> getShortTermForecastByCityAndActive(Optional<City> city, boolean active) {
+		return shortTermForecastRepository.findShortTermForecastByCityAndActive(city, active);
+	}
+
+	public List<FivedayForecast> getFivedayForecastByCityAndActive(Optional<City> city, boolean active) {
+		return fiveDayForecastRepository.findShortTermForecastByCityAndActive(city, active);
+	}
 }

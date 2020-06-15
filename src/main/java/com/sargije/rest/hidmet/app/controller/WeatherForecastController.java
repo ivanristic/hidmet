@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping(value = "/api/v1")
@@ -55,11 +56,25 @@ public class WeatherForecastController {
     }
 
 
-	@GetMapping(value = "current/active/{cityName}")
-	public CurrentForecast showCurrentForecastByCityName (@PathVariable String  cityName){
-		City city = cityRepository.findCityByCityName(cityName);
+	@GetMapping(value = "/current/active/{cityId}")
+	public CurrentForecast showCurrentForecastByCityName (@PathVariable Long cityId){
+		Optional<City> city = cityRepository.findById(cityId);
 
 		return hidmetDataService.getCurrentForecastByCityAndActive(city, true);
+	}
+
+	@GetMapping(value = "/shortTerm/active/{cityId}")
+	public List<ShortTermForecast> showShortTermForecastForecastByCityName (@PathVariable Long  cityId){
+		Optional<City> city = cityRepository.findById(cityId);
+
+		return hidmetDataService.getShortTermForecastByCityAndActive(city, true);
+	}
+
+	@GetMapping(value = "/fiveday/active/{cityId}")
+	public List<FivedayForecast> showFivedayForecastForecastByCityName (@PathVariable Long  cityId){
+		Optional<City> city = cityRepository.findById(cityId);
+
+		return hidmetDataService.getFivedayForecastByCityAndActive(city, true);
 	}
 
 	@GetMapping(value = "/station/airquality")

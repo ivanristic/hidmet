@@ -3,7 +3,8 @@ package com.sargije.rest.hidmet.app.controller;
 import com.sargije.rest.hidmet.app.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,8 +12,6 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.client.RestTemplate;
-
-import java.util.Arrays;
 
 @Controller
 @RequestMapping(value = "/readable")
@@ -29,13 +28,13 @@ public class ReadableController {
 		ResponseEntity<FivedayForecast[]> fivedayForecast = restTemplate.getForEntity(restApiUrl + "/api/v1/fiveday", FivedayForecast[].class);
 		//ResponseEntity<City[]> city = restTemplate.getForEntity(restApiUrl + "/rest/city/fiveday", City[].class);
 		//using exchange
-		HttpHeaders headers = new HttpHeaders();
-		headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
-		HttpEntity<City[]> citiesEntity = new HttpEntity<City[]>(headers);
-		City[] city = restTemplate.exchange(restApiUrl + "/api/v1/city/forecastType/fiveDay", HttpMethod.GET, citiesEntity, City[].class).getBody();
-
+		//HttpHeaders headers = new HttpHeaders();
+		//headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+		//HttpEntity<City[]> citiesEntity = new HttpEntity<City[]>(headers);
+		//City[] city = restTemplate.exchange(restApiUrl + "/api/v1/city/forecastType/fiveDay", HttpMethod.GET, citiesEntity, City[].class).getBody();
+		ResponseEntity<City[]> city = restTemplate.getForEntity(restApiUrl + "/api/v1/city/forecastType/fiveDay", City[].class);
 		model.addAttribute("listFiveDayForecast", fivedayForecast.getBody());
-		model.addAttribute("cityList", city);
+		model.addAttribute("cityList", city.getBody());
         return "fiveday";
 	}
 

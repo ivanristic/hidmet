@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 
 @Transactional
@@ -23,5 +24,5 @@ public interface CurrentForecastRepository extends CrudRepository<CurrentForecas
 	@Query("update CurrentForecast cf set cf.active = 0 where cf.active = 1")
 	void updateCurrentForecastActiveToFalse();
 
-    CurrentForecast findCurrentForecastByCityAndActive(City city, boolean active);
+    CurrentForecast findCurrentForecastByCityAndActive(Optional<City> city, boolean active);
 }
