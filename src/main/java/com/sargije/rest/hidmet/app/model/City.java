@@ -1,6 +1,8 @@
 package com.sargije.rest.hidmet.app.model;
 
 import io.aexp.nodes.graphql.annotations.GraphQLIgnore;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
@@ -14,6 +16,7 @@ import java.util.Set;
  * 
  */
 @Entity
+@ApiModel(description = "Class representing a city.")
 public class City implements Serializable {
 
 	@GraphQLIgnore
@@ -22,30 +25,32 @@ public class City implements Serializable {
 	@Id
 	@GeneratedValue(strategy= GenerationType.AUTO, generator="native")
 	@GenericGenerator(name = "native", strategy = "native")
+	@ApiModelProperty(notes = "Unique id of the city", example = "1", required = true, position = 0)
 	private Long id;
 
 	@Size(min = 3, max = 24,message = "City must be between 3 and 24 characters")
 	@Column(name="city_name")
+	@ApiModelProperty(notes = "Unique name of the city", example = "Palić", required = true, position = 1)
 	private String cityName;
 
 	//bi-directional many-to-one association to CurrentForecast
 	@GraphQLIgnore
-	@OneToMany(mappedBy="city", fetch = FetchType.LAZY)
+	@OneToMany(mappedBy="city")
 	private Set<CurrentForecast> currentForecasts;
 
 	//bi-directional many-to-one association to FivedayForecast
 	@GraphQLIgnore
-	@OneToMany(mappedBy="city", fetch = FetchType.LAZY)
+	@OneToMany(mappedBy="city")
 	private Set<FivedayForecast> fivedayForecasts;
 
 	//bi-directional many-to-one association to ShortTermForecast
 	@GraphQLIgnore
-	@OneToMany(mappedBy="city", fetch = FetchType.LAZY)
+	@OneToMany(mappedBy="city")
 	private Set<ShortTermForecast> shortTermForecasts;
 
 	//bi-directional many-to-one association to ShortTermForecast
 	@GraphQLIgnore
-	@OneToMany(mappedBy="city", fetch = FetchType.LAZY)
+	@OneToMany(mappedBy="city")
 	private Set<Station> station;
 
 

@@ -1,9 +1,9 @@
 package com.sargije.rest.hidmet.app.config;
 
-import com.coxautodev.graphql.tools.SchemaParserDictionary;
 import com.sargije.rest.hidmet.app.interceptors.CustomRequestLoggingInterceptor;
 import com.sargije.rest.hidmet.app.model.Authorities;
 import com.sargije.rest.hidmet.app.model.AuthoritiesId;
+import graphql.kickstart.tools.SchemaParserDictionary;
 import io.aexp.nodes.graphql.GraphQLTemplate;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.annotation.Bean;
@@ -21,7 +21,7 @@ public class MvcConfig implements WebMvcConfigurer {
 	public void addInterceptors(InterceptorRegistry registry) {
 		registry.addInterceptor(new CustomRequestLoggingInterceptor());
 	}
-/**
+/*
 	@Bean
 	public CommonsRequestLoggingFilter requestLoggingFilter() {
 		CommonsRequestLoggingFilter requestLoggingFilter = new CommonsRequestLoggingFilter();
@@ -55,9 +55,9 @@ public class MvcConfig implements WebMvcConfigurer {
 	@Bean
 	public GraphQLTemplate getGraphQLTemplate() {
 
-		GraphQLTemplate graphQLTemplate = new GraphQLTemplate();
+		//GraphQLTemplate graphQLTemplate = new GraphQLTemplate();
 
-		return graphQLTemplate;
+		return  new GraphQLTemplate();
 	}
 
 	@Bean

@@ -3,6 +3,7 @@ package com.sargije.rest.hidmet.app.controller;
 import com.sargije.rest.hidmet.app.model.*;
 import com.sargije.rest.hidmet.app.repository.CityRepository;
 import com.sargije.rest.hidmet.app.services.HidmetDataService;
+import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,7 +58,10 @@ public class WeatherForecastController {
 
 
 	@GetMapping(value = "/current/active/{cityId}")
-	public CurrentForecast showCurrentForecastByCityName (@PathVariable Long cityId){
+	public CurrentForecast showCurrentForecastByCityName (
+			@ApiParam(name =  "cityId", type = "Long", value = "Id of the city", example = "1", required = true)
+			@PathVariable Long cityId
+	){
 		Optional<City> city = cityRepository.findById(cityId);
 
 		return hidmetDataService.getCurrentForecastByCityAndActive(city, true);

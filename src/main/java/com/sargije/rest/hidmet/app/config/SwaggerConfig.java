@@ -9,10 +9,9 @@ import springfox.documentation.service.ApiInfo;
 import springfox.documentation.service.Contact;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
-import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 @Configuration
-@EnableSwagger2
+//@EnableSwagger2
 public class SwaggerConfig {
     /***
     It is not always desirable to expose the documentation for your entire API. You can restrict Swagger’s response by passing parameters to the apis() and paths() methods of the Docket class.
@@ -24,12 +23,14 @@ public class SwaggerConfig {
                 .select()                 
                 .apis(RequestHandlerSelectors.basePackage("com.sargije.rest.hidmet.app.controller"))
                 .paths(PathSelectors.ant("/api/v1/**"))
-                .build();
+                .build()
+                .apiInfo(apiEndPointsInfo());
     }
 
     private ApiInfo apiEndPointsInfo() {
-        return new ApiInfoBuilder().title("Spring Boot REST API")
-                .description("Weather Forecast REST API")
+        return new ApiInfoBuilder()
+                .title("Weather Forecast API")
+                .description("Weather Forecast API")
                 .contact(new Contact("Ivan Ristić", "www.sargije.com", "ivanristich@hotmail.com"))
                 .license("Apache 2.0")
                 .licenseUrl("http://www.apache.org/licenses/LICENSE-2.0.html")

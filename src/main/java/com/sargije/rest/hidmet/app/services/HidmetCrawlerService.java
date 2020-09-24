@@ -76,7 +76,7 @@ public class HidmetCrawlerService {
 	private String airQualityURL;
 
 	@Value("${hidmet.forecast.url}")
-	private String foreacasURL;
+	private String forecastURL;
 
 	//private final String cronFivedayForecast = "0 0/15 10-13 * * *";
 	//private final String cronCurrentForecast = "0 7-17,20,30,40,50 * * * *";
@@ -95,7 +95,7 @@ public class HidmetCrawlerService {
 
 		//logger.info("Fiveday Forecast crawler initialized");
 			try {
-				docFivedayForecastHref = Jsoup.connect(foreacasURL+"prognoza/stanica.php").get();
+				docFivedayForecastHref = Jsoup.connect(forecastURL+"prognoza/stanica.php").get();
 	//			String[] stringTableTimestamp = doc.select("table tfoot tr td").get(0).text().split("\u00a0");
 				LocalDateTime tableTime;
 				// checking lenght of date field to verify if forecast is updated or regular
@@ -128,7 +128,7 @@ public class HidmetCrawlerService {
 					//updating all forecasts to false
 					fiveDayForecastRepository.updateFivedayForecastActiveToFalse();
 
-					List<FivedayForecast> listFiveDayForecast = new ArrayList<FivedayForecast>();
+					List<FivedayForecast> listFiveDayForecast = new ArrayList<>();
 					//getting list of Cities and Descriptions
 					List<City> cities = (List<City>) cityRepository.findAll();
                     List<Description> currentDescriptions = (List<Description>) descriptionRepository.findAll();
@@ -155,7 +155,7 @@ public class HidmetCrawlerService {
 							Document.OutputSettings settings = new Document.OutputSettings();
 							settings.escapeMode(Entities.EscapeMode.xhtml);
 
-							docFivedayForecast = Jsoup.connect(foreacasURL+"prognoza/"+href.attr("href")).execute().parse();
+							docFivedayForecast = Jsoup.connect(forecastURL+"prognoza/"+href.attr("href")).execute().parse();
 							docFivedayForecast.outputSettings().escapeMode(Entities.EscapeMode.xhtml);
 
 							// getting elements from forecast
@@ -180,11 +180,10 @@ public class HidmetCrawlerService {
 	  							String[] stringForecastTimestamp = theadRows.get(i).text().split(" ");
 
 								// extracting date from link, verify that Date exist and if not insert date value in table
-								/** @TODO
+								/* @TODO
 								 * check if it's the same month, if it is create local date withDayOfMonth(int dayOfMonth)
 								 * if not use plusMonths(long month)
 								 *
-
 								*/
 
 
@@ -245,12 +244,10 @@ public class HidmetCrawlerService {
 						
 						
 					}
-					/** all in one update to database*/
+					/* all in one update to database*/
 					fiveDayForecastRepository.saveAll(listFiveDayForecast);
-					/** publish to GraphQL subscribers */
+					/* publish to GraphQL subscribers */
 					fivedayForecastPublisher.publish(listFiveDayForecast);
-				}else{
-
 				}
 			} catch (IOException e) {
                 System.out.println("FivedayForecast "+LocalDateTime.now());
@@ -262,12 +259,12 @@ public class HidmetCrawlerService {
 	@Scheduled(cron = cronCurrentForecast)
 	private void populateCurrentForecast() {
 
-		Document docCurrentForecast = null;
+		Document docCurrentForecast;
 		// setting dateTime pattern
 		DateTimeFormatter dtFormatterCurrentForecast = DateTimeFormatter.ofPattern("HH:mm dd.MM.yyyy");
 			try {
 				//connecting to webpage
-				docCurrentForecast = Jsoup.connect(foreacasURL + "osmotreni/index.php").get();
+				docCurrentForecast = Jsoup.connect(forecastURL + "osmotreni/index.php").get();
 				docCurrentForecast.outputSettings().escapeMode(Entities.EscapeMode.xhtml);
 				//getting rows of interest
 				Elements tbodyRows = docCurrentForecast.select("table tbody").get(0).select("tr");
@@ -284,10 +281,10 @@ public class HidmetCrawlerService {
 					//preparing database for new entries
 					currentForecastRepository.updateCurrentForecastActiveToFalse();
 					//getting values for cities and descriptions trough one call
-					List<City> cities = (List<City>) cityRepository.findDistinctByCurrentForecastsNotNull();//.findAll();
+					List<City> cities = cityRepository.findDistinctByCurrentForecastsNotNull();//.findAll();
 					List<Description> descriptions = (List<Description>) descriptionRepository.findAll();
 
-					List<CurrentForecast> listCurrentForecastsModel = new ArrayList<CurrentForecast>();
+					List<CurrentForecast> listCurrentForecastsModel = new ArrayList<>();
 
 					//looping trough rows of interest
 					for (Element tbodyRow : tbodyRows) {
@@ -296,8 +293,8 @@ public class HidmetCrawlerService {
 						//getting City and cleaning data
 						String hcity = tdRows.get(theadFields.indexOf("Stanica")).text().replaceAll("&nbsp; ", "");
 
-						City city = null;
-						Description description = null;
+						City city;
+						Description description;
 
 						// getting city from list and if doesn't exist create one
 						try {
@@ -342,9 +339,9 @@ public class HidmetCrawlerService {
 							listCurrentForecastsModel.add(currentForecastModel);
 						}
 					}
-					/** all in one commit */
+					/* all in one commit */
 					currentForecastRepository.saveAll(listCurrentForecastsModel);
-					/** publish to graphql subscribers */
+					/* publish to graphql subscribers */
 					currentForecastPublisher.publish(listCurrentForecastsModel);
 				}
 			} catch (IOException e) {
@@ -361,7 +358,7 @@ public class HidmetCrawlerService {
 		DateTimeFormatter dateTimeFormatterShortTermForecast = DateTimeFormatter.ofPattern("dd.MM.yyyy. HH:mm:ss");
 			try {
 
-				docShortTermForecast = Jsoup.connect(foreacasURL+"prognoza/index.php").get();
+				docShortTermForecast = Jsoup.connect(forecastURL+"prognoza/index.php").get();
 				docShortTermForecast.outputSettings().escapeMode(Entities.EscapeMode.xhtml);
 
 				// getting table
@@ -403,10 +400,10 @@ public class HidmetCrawlerService {
                         // getting date in new format
                         LocalDate parseForecastDate = LocalDate.parse(th.text().substring(th.text().lastIndexOf(' ')), dtformatter);
                         listStringDates.put(i, parseForecastDate);
-                        ForecastDate forecastDate;// = null;
+                        //ForecastDate forecastDate;// = null;
 						// if there is no date insert it to database
 						// @TODO check if this code is redundant?
-                        /**try {
+                        /*try {
                             forecastDate = forecastDates.stream().filter(p -> p.getForecastDate().equals(parseForecastDate)).findFirst().get();
                         }catch(NoSuchElementException e){
 							//ForecastDate
@@ -510,9 +507,9 @@ public class HidmetCrawlerService {
 							}
 						}
 					}
-					/** all in one commit */
+					/* all in one commit */
 					shortTermForecastRepository.saveAll(listShortTermForecast);
-					/** publish to graphql subscribers */
+					/* publish to graphql subscribers */
 					shortTermForecastPublisher.publish(listShortTermForecast);
 				}
 			}catch (IOException e) {
@@ -543,9 +540,9 @@ public class HidmetCrawlerService {
                     logger.info("Air quality populating data " + LocalDateTime.now());
                     //  populateStations();
 
-                    List<Station> stations = (List<Station>) stationRepository.findAll();
+                    List<Station> stations = stationRepository.findAll();
                     airQualityRepository.updateAirQualitySetActiveToFalse();
-                    List<AirQuality> listOfAirQuality = new ArrayList<AirQuality>();
+                    List<AirQuality> listOfAirQuality = new ArrayList<>();
                     for (Element trStation : tbodyStations) {
                         Elements tdStation = trStation.select("td");
                         try {
@@ -612,8 +609,6 @@ public class HidmetCrawlerService {
                             airQuality.setStation(station);
                             airQuality.setActive(true);
                             listOfAirQuality.add(airQuality);
-                        } else {
-                            System.out.println("No AirQuality for station " + station.getCity().getCityName() + " " + station.getStationName());
                         }
 
                     }
@@ -634,7 +629,7 @@ public class HidmetCrawlerService {
 			docStations = Jsoup.connect(airQualityURL+"pregledstanica.php").execute().parse();
 			Elements tbodyStationsUrl = docStations.select("table").get(0).select("tbody tr").select("a[href]");
 
-				List<Station> stations = (List<Station>) stationRepository.findAll();
+				List<Station> stations = stationRepository.findAll();
 				List<City> cities = (List<City>) cityRepository.findAll();
 				for (Element tdStation : tbodyStationsUrl) {
                     Document docii;
@@ -649,8 +644,8 @@ public class HidmetCrawlerService {
 						hstationNameTmp = hstationNameTmp.substring(0, hstationNameTmp.indexOf("-"));
 					}
 					String hstationName = hstationNameTmp;
-					City city = null;
-					Station station = null;
+					City city;
+					Station station;
 					try {
 						city = cities.parallelStream().filter(p -> p.getCityName().equals(hcity)).findFirst().get();
 					} catch (NoSuchElementException e) {
@@ -684,7 +679,7 @@ public class HidmetCrawlerService {
 			e.printStackTrace();
 		}
 	}
-/** unnecesery
+/* unnecesery
 	private void populateDescriptionAndImageForForecast() {
 		Document docDescriptions;
 

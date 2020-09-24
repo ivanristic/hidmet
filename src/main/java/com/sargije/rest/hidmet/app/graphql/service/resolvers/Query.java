@@ -1,8 +1,8 @@
 package com.sargije.rest.hidmet.app.graphql.service.resolvers;
 
-import com.coxautodev.graphql.tools.GraphQLQueryResolver;
 import com.sargije.rest.hidmet.app.model.*;
 import com.sargije.rest.hidmet.app.services.HidmetDataService;
+import graphql.kickstart.tools.GraphQLQueryResolver;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
