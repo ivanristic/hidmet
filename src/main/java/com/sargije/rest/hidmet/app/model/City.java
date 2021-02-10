@@ -1,8 +1,7 @@
 package com.sargije.rest.hidmet.app.model;
 
 import io.aexp.nodes.graphql.annotations.GraphQLIgnore;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
@@ -16,7 +15,7 @@ import java.util.Set;
  * 
  */
 @Entity
-@ApiModel(description = "Class representing a city.")
+@Schema(description = "Class representing a city.")
 public class City implements Serializable {
 
 	@GraphQLIgnore
@@ -25,12 +24,12 @@ public class City implements Serializable {
 	@Id
 	@GeneratedValue(strategy= GenerationType.AUTO, generator="native")
 	@GenericGenerator(name = "native", strategy = "native")
-	@ApiModelProperty(notes = "Unique id of the city", example = "1", required = true, position = 0)
+	@Schema(title = "Unique id of the city", example = "1", required = true)
 	private Long id;
 
 	@Size(min = 3, max = 24,message = "City must be between 3 and 24 characters")
 	@Column(name="city_name")
-	@ApiModelProperty(notes = "Unique name of the city", example = "Palić", required = true, position = 1)
+	@Schema(title =  "Unique name of the city", example = "Palić", required = true)
 	private String cityName;
 
 	//bi-directional many-to-one association to CurrentForecast

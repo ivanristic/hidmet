@@ -14,6 +14,7 @@
 		<packaging>jar</packaging>
 		<!--<kotlin.version>1.3.10</kotlin.version>-->
 		<springfox.version>3.0.0</springfox.version>
+		<springdoc-openapi.version>1.4.7</springdoc-openapi.version>
 		<jsoup.version>1.13.1</jsoup.version>
 		<graphql-java-kickstart.version>7.1.0</graphql-java-kickstart.version>
 		<graphql-datetime>2.3.1</graphql-datetime>
@@ -119,12 +120,18 @@
 		</dependency>
 
 		<!--  Swagger related -->
-
+<!--
         <dependency>
             <groupId>io.springfox</groupId>
             <artifactId>springfox-boot-starter</artifactId>
             <version>${springfox.version}</version>
         </dependency>
+        -->
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-ui</artifactId>
+			<version>${springdoc-openapi.version}</version>
+		</dependency>
 		<!--  graphql related -->
 
 		<dependency>

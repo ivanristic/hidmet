@@ -2,8 +2,8 @@ package com.sargije.rest.hidmet.app.controller;
 
 import com.sargije.rest.hidmet.app.model.City;
 import com.sargije.rest.hidmet.app.services.HidmetDataService;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,11 +18,11 @@ import java.util.Optional;
 @RestController
 @RequestMapping(value = "/api/v1")
 @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Successfully retrieved list"),
-        @ApiResponse(code = 401, message = "You are not authorized to view the resource"),
-        @ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
-        @ApiResponse(code = 404, message = "The resource you were trying to reach is not found"),
-        @ApiResponse(code = 406, message = "Input parameters are not as expected")
+        @ApiResponse(responseCode = "200", description = "Successfully retrieved list"),
+        @ApiResponse(responseCode = "401", description = "You are not authorized to view the resource"),
+        @ApiResponse(responseCode = "403", description = "Accessing the resource you were trying to reach is forbidden"),
+        @ApiResponse(responseCode = "404", description = "The resource you were trying to reach is not found"),
+        @ApiResponse(responseCode = "406", description = "Input parameters are not as expected")
 })
 public class CityController {
 
