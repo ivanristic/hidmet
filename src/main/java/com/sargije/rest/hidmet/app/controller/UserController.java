@@ -27,7 +27,7 @@ public class UserController {
         Users users = new Users(user.getUsername(), passwordEncoder.encode(user.getPassword()), user.isEnabled());
         usersDataService.createUser(users);
 
-        Set<Authorities> authorities = new HashSet<>();
+        Set<Authorities> authorities = new HashSet<Authorities>();
         if(user.isAdmin()){
             AuthoritiesId autId = new AuthoritiesId();
             Authorities authority = new Authorities();

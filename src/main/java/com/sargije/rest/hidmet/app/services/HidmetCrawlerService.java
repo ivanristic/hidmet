@@ -82,16 +82,16 @@ public class HidmetCrawlerService {
 	//private final String cronCurrentForecast = "0 7-17,20,30,40,50 * * * *";
 	//private final String cronShortermForecast = "0 0/15 4-13 * * *";
 
-	private final String cronFivedayForecast = "0 0/10 * * * *";
+	private final String cronFivedayForecast = "0 0/1 * * * *";
     private final String cronCurrentForecast = "0 0/1 * * * *";
-	private final String cronShortermForecast = "0 0/10 * * * *";
+	private final String cronShortermForecast = "0 0/1 * * * *";
 	private final String cronAirQuality = "0 0/1 * * * *";
 
 	@Scheduled(cron = cronFivedayForecast)
 	private void populateFivedayForecast() {
 		Document docFivedayForecastHref;
 		// setting dateTime pattern
-        DateTimeFormatter dateTimeFormatterFiveDay = DateTimeFormatter.ofPattern("dd.MM.yyyy. HH:mm:ss");
+        DateTimeFormatter dateTimeFormatterFiveDay = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm.");
 
 		//logger.info("Fiveday Forecast crawler initialized");
 			try {
@@ -99,13 +99,18 @@ public class HidmetCrawlerService {
 	//			String[] stringTableTimestamp = doc.select("table tfoot tr td").get(0).text().split("\u00a0");
 				LocalDateTime tableTime;
 				// checking lenght of date field to verify if forecast is updated or regular
-				if(docFivedayForecastHref.select("table tfoot tr td").get(0).text().length() > 40){
+				String fivedayTime;
+				if(docFivedayForecastHref.select("table tfoot tr td").get(0).text().length() > 30){
 					// if forecast is updated date is starting form character 20 to 40
-					tableTime = LocalDateTime.parse(docFivedayForecastHref.select("table tfoot tr td").get(0).text().substring(20, 40), dateTimeFormatterFiveDay);
+					fivedayTime = docFivedayForecastHref.select("table tfoot tr td").get(0).text().substring(20, 33);
 				}else{
 					// if forecast isn't updated date is starting from character 0 to 20
-					tableTime = LocalDateTime.parse(docFivedayForecastHref.select("table tfoot tr td").get(0).text().substring(0, 20), dateTimeFormatterFiveDay);
+					fivedayTime = docFivedayForecastHref.select("table tfoot tr td").get(0).text().substring(0, 20);
 				}
+
+				fivedayTime = fivedayTime.substring(0, 6) + LocalDate.now().getYear() + fivedayTime.substring(6, 13);
+				System.out.println(fivedayTime);
+				tableTime = LocalDateTime.parse(fivedayTime, dateTimeFormatterFiveDay);
 
 				// verify that forecast has changed
 				if(!fiveDayForecastRepository.existsByActiveAndTableTime(true, tableTime)){
@@ -355,7 +360,7 @@ public class HidmetCrawlerService {
 	private void populateShortTermForecast() {
 		Document docShortTermForecast;
 		// setting dateTime pattern
-		DateTimeFormatter dateTimeFormatterShortTermForecast = DateTimeFormatter.ofPattern("dd.MM.yyyy. HH:mm:ss");
+		DateTimeFormatter dateTimeFormatterShortTermForecast = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm.");
 			try {
 
 				docShortTermForecast = Jsoup.connect(forecastURL+"prognoza/index.php").get();
@@ -368,7 +373,11 @@ public class HidmetCrawlerService {
 				Element thead = table.select("thead tr").get(0);
 				Element tfoot = table.select("tfoot tr td").get(0);
 				Element tbody = table.select("tbody").get(0);
-				LocalDateTime tableTime = LocalDateTime.parse(tfoot.text().substring(20, 40), dateTimeFormatterShortTermForecast);
+				String currentTime = tfoot.text().substring(20);
+				System.out.println(currentTime);
+				currentTime = currentTime.substring(0, 6) + LocalDate.now().getYear() + currentTime.substring(6, 13);
+
+				LocalDateTime tableTime = LocalDateTime.parse(currentTime, dateTimeFormatterShortTermForecast);
 				Map<Integer, LocalDate> listStringDates = new HashMap<>();
 				// verify if short term forecast exists for date and if not continue
 				if(!shortTermForecastRepository.existsByActiveAndTableTime(true, tableTime)){
@@ -396,9 +405,9 @@ public class HidmetCrawlerService {
 
 						Element th = theadRows.get(i);
 						//
-                        DateTimeFormatter dtformatter = DateTimeFormatter.ofPattern(" dd.MM.yyyy.");
+                        DateTimeFormatter dtformatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
                         // getting date in new format
-                        LocalDate parseForecastDate = LocalDate.parse(th.text().substring(th.text().lastIndexOf(' ')), dtformatter);
+                        LocalDate parseForecastDate = LocalDate.parse(th.text().substring(0, th.text().lastIndexOf(' '))+LocalDateTime.now().getYear(), dtformatter);
                         listStringDates.put(i, parseForecastDate);
                         //ForecastDate forecastDate;// = null;
 						// if there is no date insert it to database
@@ -533,7 +542,7 @@ public class HidmetCrawlerService {
             Elements tbodyStations = docAirQuality.select("table").get(0).select("tbody tr");
             List<String> theadFields = docAirQuality.select("table").get(0).select("thead tr th").eachText();
 
-                String time = docAirQuality.select("body > div.admin-wrapper > div.admin-content > div > div.admin-content-header > div > div > div").select("a[href]").get(0).text().substring(21);
+                String time = docAirQuality.select("body > div.admin-wrapper > div.admin-content > div > div.admin-content-header > div > div > div").select("a[href]").get(0).text().substring(21, 38);
                 LocalDateTime tableTime = LocalDateTime.parse(time, dateTimeFormatterAirQuality);
                 //boolean isTableTime = airQualityRepository.existsByActiveAndTableTime(true, tableTime);
                 if (!airQualityRepository.existsByActiveAndTableTime(true, tableTime)) {
