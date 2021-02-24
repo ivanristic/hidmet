@@ -212,9 +212,9 @@ public class HidmetCrawlerService {
 	  							fiveDayForecastModel.setForecastDate(forecastDate);
 	  							
 	  							if(!tbodyRowsMinTemp.get(i).text().equals("-")){
-	  								fiveDayForecastModel.setMinTemperature(new Integer(tbodyRowsMinTemp.get(i).text()));
+	  								fiveDayForecastModel.setMinTemperature(Integer.parseInt(tbodyRowsMinTemp.get(i).text()));
 	  							}
-	  							fiveDayForecastModel.setMaxTemperature(new Integer(tbodyRowsMaxTemp.get(i).text()));
+	  							fiveDayForecastModel.setMaxTemperature(Integer.parseInt(tbodyRowsMaxTemp.get(i).text()));
 	  							fiveDayForecastModel.setActive(true);
 
 	  							String img = tbodyRowsImage.get(i).select("img").attr("src");
@@ -312,12 +312,12 @@ public class HidmetCrawlerService {
 							CurrentForecast currentForecastModel = new CurrentForecast();
 							currentForecastModel.setCity(city);
 							// getting values from html fields
-							currentForecastModel.setTemperature(new Integer(tdRows.get(theadFields.indexOf("Temperatura (°C)")).text().replaceAll("[^\\d]", "")));//.trim().replaceAll("&nbsp; ", "")));
-							currentForecastModel.setPressure(new Float(tdRows.get(theadFields.indexOf("Pritisak (hPa)")).text().replaceAll("[^\\d.]", "")));//.trim().replaceAll("&nbsp; ", "")));
+							currentForecastModel.setTemperature(Integer.parseInt(tdRows.get(theadFields.indexOf("Temperatura (°C)")).text().replaceAll("[^\\d]", "")));//.trim().replaceAll("&nbsp; ", "")));
+							currentForecastModel.setPressure(Float.parseFloat(tdRows.get(theadFields.indexOf("Pritisak (hPa)")).text().replaceAll("[^\\d.]", "")));//.trim().replaceAll("&nbsp; ", "")));
 							currentForecastModel.setWindDirection(tdRows.get(theadFields.indexOf("Pravac vetra")).text().trim().replaceAll("&nbsp; ", ""));
 							currentForecastModel.setWindSpeed(tdRows.get(theadFields.indexOf("Brzina vetra (m/s)")).text().trim().replaceAll("&nbsp; ", ""));
-							currentForecastModel.setHumidity(new Integer(tdRows.get(theadFields.indexOf("Vlažnost (%)")).text().replaceAll("[^\\d]", "")));//.trim().replaceAll("&nbsp; ", "")));
-							currentForecastModel.setFeelsLike(new Integer(tdRows.get(theadFields.indexOf("Subjektivni osećaj temperature (°C)")).text().replaceAll("[^\\d]", "")));//.trim().replaceAll("&nbsp; ", "")));
+							currentForecastModel.setHumidity(Integer.parseInt(tdRows.get(theadFields.indexOf("Vlažnost (%)")).text().replaceAll("[^\\d]", "")));//.trim().replaceAll("&nbsp; ", "")));
+							currentForecastModel.setFeelsLike(Integer.parseInt(tdRows.get(theadFields.indexOf("Subjektivni osećaj temperature (°C)")).text().replaceAll("[^\\d]", "")));//.trim().replaceAll("&nbsp; ", "")));
 							String img = tdRows.get(theadFields.indexOf("Simbol")).select("img").attr("src");
 							// getting description and if doesn't exist create one with value from field
 							try {
@@ -450,11 +450,11 @@ public class HidmetCrawlerService {
 								switch (j % 3) {
 									// if 0 than its minimum temperature
 									case 0:
-										minTemp = new Integer(td.html());
+										minTemp = Integer.parseInt(td.html());
 										break;
 									// if 1 it is maximum temperature
 									case 1:
-										maxTemp = new Integer(td.html());
+										maxTemp = Integer.parseInt(td.html());
 										break;
 									// if 2  it is forecast date
 									case 2:
@@ -703,7 +703,7 @@ public class HidmetCrawlerService {
 					descriptionRepository.saveAll(currentDescriptions);
 				
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
+
 
 				e.printStackTrace();
 			}
