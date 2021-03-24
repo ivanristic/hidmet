@@ -10,7 +10,7 @@
     
 	<properties>
 		<serverName>openshift</serverName>
-		<packaging>war</packaging>
+		<packaging>jar</packaging>
 		<!--<kotlin.version>1.3.10</kotlin.version>-->
 		<springfox.version>3.0.0</springfox.version>
 		<springdoc-openapi.version>1.4.7</springdoc-openapi.version>
